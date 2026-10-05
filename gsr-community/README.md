@@ -61,7 +61,7 @@ Settings (environment variables):
 
 GSR runs on WordPress.com, which cannot run this Node app. The two stay separate programs joined by links:
 
-1. **Host the app on a GSR subdomain**, for example `community.granitestatereport.com`. Deploy it to any Node host with a persistent disk, then add a DNS record for the subdomain wherever granitestatereport.com's DNS is managed (WordPress.com, if the domain is registered there) pointing at that host. Set `BASE_URL` to the new address.
+1. **Host the app at `community.granitestatereport.com`.** Deploy it to any Node host with a persistent disk, then add a DNS record for the subdomain wherever granitestatereport.com's DNS is managed (WordPress.com, if the domain is registered there) pointing at that host. Set `BASE_URL` to `https://community.granitestatereport.com`.
 2. **Install the plugin** in `integrations/wordpress/gsr-community-link/`. Zip that folder, upload it under Plugins > Add New > Upload, activate, and set the app address under Settings > GSR Community. Every GSR post then ends with a "Join the discussion" box that opens that story's thread.
 3. **Add a menu link.** In the site editor's Navigation block (or Appearance > Menus), add a custom link to the community address labeled something like "Community".
 
@@ -77,7 +77,7 @@ The reverse is also true: an NH driver license or non-driver ID shows NH residen
 
 ## Before public launch
 
-1. **Subdomain.** Pick the address (the defaults assume `community.granitestatereport.com`, which is not decided yet). Set `SITE_DOMAIN`, `BASE_URL`, and `MAIL_FROM` to match, and set the same address in the plugin.
+1. **Address.** The app lives at `community.granitestatereport.com`. `SITE_DOMAIN`, `MAIL_FROM`, and the plugin already default to it; set `BASE_URL=https://community.granitestatereport.com` on the server. The email provider must be allowed to send for that subdomain, or change `MAIL_FROM`.
 2. **Hosting with HTTPS.** Any Node host with a persistent disk (a small VPS works). Set `NODE_ENV=production`. Back up `data/app.db`; never back up `data/private/`.
 3. **Consider a verification vendor.** Manual review works for the first few hundred members. At scale, a vendor (Persona, Stripe Identity, ID.me, and others) does document authenticity and face match automatically, and you never hold the images. The verify route is the one place to swap.
 4. **Lawyer review of privacy terms.** Collecting government ID is sensitive. Have an attorney check the privacy page against New Hampshire's data-breach notification law and the NH consumer privacy statute before launch (VERIFY current text and whether its size thresholds apply to you).
