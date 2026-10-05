@@ -21,7 +21,7 @@ function client(base) {
     }
     return res;
   };
-  const csrf = () => decodeURIComponent(jar.nhr_csrf);
+  const csrf = () => decodeURIComponent(jar.gsrc_csrf);
   const post = (url, fields) => call(url, { method: 'POST', body: new URLSearchParams({ _csrf: csrf(), ...fields }) });
   return { call, post, csrf, jar };
 }

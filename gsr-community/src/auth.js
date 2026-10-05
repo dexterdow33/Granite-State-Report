@@ -1,7 +1,7 @@
 const crypto = require('node:crypto');
 
-const SESSION_COOKIE = 'nhr_sid';
-const CSRF_COOKIE = 'nhr_csrf';
+const SESSION_COOKIE = 'gsrc_sid';
+const CSRF_COOKIE = 'gsrc_csrf';
 
 function hashPassword(password) {
   const salt = crypto.randomBytes(16);

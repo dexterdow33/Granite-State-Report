@@ -28,8 +28,8 @@ function loadConfig(overrides = {}) {
   const dataDir = overrides.dataDir || process.env.DATA_DIR || path.join(__dirname, '..', 'data');
   const partnerUrl = (process.env.PARTNER_URL || 'https://granitestatereport.com').replace(/\/+$/, '');
   return {
-    siteName: process.env.SITE_NAME || 'NewHampshirights',
-    domain: process.env.SITE_DOMAIN || 'newhampshirights.com',
+    siteName: process.env.SITE_NAME || 'GSR Community',
+    domain: process.env.SITE_DOMAIN || 'community.granitestatereport.com',
     baseUrl: (process.env.BASE_URL || 'http://localhost:3000').replace(/\/+$/, ''),
     // The partner newsroom whose stories get discussion threads. Its WordPress REST API
     // supplies article titles, so members can only open threads on real published stories.
@@ -40,7 +40,7 @@ function loadConfig(overrides = {}) {
     },
     // SMTP_URL like smtps://user:pass@smtp.example.com:465. Without it, mail is printed to the console.
     smtpUrl: process.env.SMTP_URL || '',
-    mailFrom: process.env.MAIL_FROM || 'no-reply@newhampshirights.com',
+    mailFrom: process.env.MAIL_FROM || 'no-reply@community.granitestatereport.com',
     pendingUploadDays: 30,
     port: Number(process.env.PORT || 3000),
     production: process.env.NODE_ENV === 'production',

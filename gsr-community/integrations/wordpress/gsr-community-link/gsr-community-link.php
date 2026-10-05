@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name: NH Community Link
- * Description: Adds a "Discuss with verified New Hampshire residents" box under each post, linking to that story's thread on the community app.
+ * Plugin Name: GSR Community Link
+ * Description: Adds a "Discuss with verified New Hampshire residents" box under each post, linking to that story's thread on GSR Community.
  * Version: 0.1.0
  * License: GPL-2.0-or-later
  */
@@ -25,7 +25,7 @@ function nhcl_append_box( $content ) {
 	}
 	$href = nhcl_community_url() . '/discuss?url=' . rawurlencode( get_permalink() );
 	$box  = '<aside class="nhcl-box">'
-		. '<p class="nhcl-title">Talk about this story with verified New Hampshire residents</p>'
+		. '<p class="nhcl-title">Talk about this story on GSR Community</p>'
 		. '<p class="nhcl-sub">Every member shows NH ID before posting. No bots, no out-of-state accounts.</p>'
 		. '<a class="nhcl-button" href="' . esc_url( $href ) . '">Join the discussion</a>'
 		. '</aside>';
@@ -46,7 +46,7 @@ function nhcl_styles() {
 }
 add_action( 'wp_head', 'nhcl_styles' );
 
-// Settings > NH Community: one field for the community app's address.
+// Settings > GSR Community: one field for the community app's address.
 function nhcl_settings_init() {
 	register_setting( 'nhcl', NHCL_OPTION, array( 'type' => 'string', 'sanitize_callback' => 'esc_url_raw', 'default' => NHCL_DEFAULT ) );
 	add_settings_section( 'nhcl_main', '', '__return_false', 'nhcl' );
@@ -63,8 +63,8 @@ function nhcl_settings_init() {
 add_action( 'admin_init', 'nhcl_settings_init' );
 
 function nhcl_settings_page() {
-	add_options_page( 'NH Community', 'NH Community', 'manage_options', 'nhcl', function () {
-		echo '<div class="wrap"><h1>NH Community</h1><form method="post" action="options.php">';
+	add_options_page( 'GSR Community', 'GSR Community', 'manage_options', 'nhcl', function () {
+		echo '<div class="wrap"><h1>GSR Community</h1><form method="post" action="options.php">';
 		settings_fields( 'nhcl' );
 		do_settings_sections( 'nhcl' );
 		submit_button();

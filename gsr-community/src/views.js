@@ -48,7 +48,7 @@ ${flash ? `<div class="flash">${h(flash)}</div>` : ''}
 ${body}
 </main>
 <footer class="wrap foot">
-  <p>${h(config.siteName)} is an independent platform for verified New Hampshire residents. It is not affiliated with, endorsed by, or operated by the State of New Hampshire or any town or city.</p>
+  <p>${h(config.siteName)} is a members-only forum for verified New Hampshire residents, run by ${h(config.partner.name)}. It is not affiliated with, endorsed by, or operated by the State of New Hampshire or any town or city.</p>
   <p><a href="/about">About</a> · <a href="/rules">Community rules</a> · <a href="/privacy">Privacy &amp; ID handling</a></p>
 </footer>
 </body>
@@ -340,6 +340,7 @@ function accountPage(req, error = '') {
 const staticPages = {
   about: (config) => `<section class="card"><h1>About ${h(config.siteName)}</h1>
     <p>${h(config.siteName)} is a social platform with one membership rule: you live in New Hampshire, and you proved it. Verified residents use it to follow state and town government, buy and sell locally, argue in good faith, share information, and help each other.</p>
+    <p>It is run by ${h(config.partner.name)}. Each ${h(config.partner.name)} story gets its own discussion thread in the News section.</p>
     <p>Content is visible only to verified members. It is not indexed by search engines.</p></section>`,
   rules: () => `<section class="card"><h1>Community rules</h1><ol>
     <li>One account per person. Your display name should be a name people in your town would recognize.</li>

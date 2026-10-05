@@ -184,7 +184,7 @@ function createApp(overrides = {}, deps = {}) {
       removeFiles(JSON.parse(ver.files).map((f) => f.path));
     }
     db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id); // cascades to sessions, posts, comments, reports
-    res.clearCookie('nhr_sid', { path: '/' });
+    res.clearCookie('gsrc_sid', { path: '/' });
     req.user = null;
     render(req, res, 'Account deleted', '', { flash: 'Your account, posts, comments, and any ID records are deleted.' });
   });
