@@ -41,6 +41,12 @@ A request is rarely one file. Open them all, scan them all with the same terms, 
 ### Finds the sensitive stuff first
 The scanner proposes redactions for Social Security and taxpayer ID numbers, bank and card numbers, phone numbers, emails, dates of birth, home addresses and any names or terms you list. It also reads filled-in form fields. Every hit is a proposal. A person accepts or rejects each one, draws boxes by hand, and withholds whole pages when needed.
 
+### Keeps the request together
+Every file you open for a request stays on that request's shelf, with its marks, until you take it off. Come back next week and pick up where you stopped.
+
+### Nothing goes out unsigned
+Each file needs a named sign-off before export, and only after every proposed mark has a decision. Change a mark later and the sign-off goes stale. The reviewer's name and time are in the log that goes to the requester and in your audit trail.
+
 ### Puts the exemption on the record
 Each redaction carries the exemption relied on and a stated reason. Export a redaction log the requester can read, with page and Bates numbers, that never repeats the withheld content. Keep an internal audit log with file fingerprints for your own records.
 
@@ -56,7 +62,7 @@ Acknowledgment with a time estimate. Production cover letter. Denial with reason
 | A town or city clerk | The 5-day tracker, letters on your letterhead, and redactions that hold up |
 | A school district or police records office | Personnel and investigative files redacted with the exemption printed on each box |
 | A newsroom or citizen requester | A log of every request you've sent, and a follow-up letter the day the window closes |
-| Counsel for a public body | A Vaughn-style redaction log and an audit trail with SHA-256 hashes |
+| Counsel for a public body | A Vaughn-style redaction log, named sign-offs, and an audit trail with SHA-256 hashes |
 
 ---
 

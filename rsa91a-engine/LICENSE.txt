@@ -1,6 +1,6 @@
 RSA91A-Engine
 END USER LICENSE AGREEMENT
-Version 1.2.0, October 13, 2026
+Version 1.3.0, October 13, 2026
 
 Copyright (c) 2026 Ninth State Software [VERIFY: exact legal entity name and
 entity type, e.g. "Ninth State Software LLC, a New Hampshire limited liability

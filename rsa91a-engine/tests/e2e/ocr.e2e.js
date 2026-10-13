@@ -91,7 +91,7 @@ async function main() {
   assert.ok(texts.some((t) => /^Jane Q+\. Public$/.test(t)), 'term (exact or near) missed the name: ' + JSON.stringify(texts));
   assert.ok(marks.every((m) => m.ocr && m.label.startsWith('OCR: ')), 'OCR marks should be labeled');
 
-  await page.evaluate(() => { for (const m of window.RSA91A.studio.state.marks) m.status = 'accepted'; window.RSA91A.studio.render(); });
+  await page.evaluate(async () => { for (const m of window.RSA91A.studio.state.marks) m.status = 'accepted'; if (!await window.RSA91A.studio.signOff('Test Reviewer')) throw new Error('sign-off refused'); window.RSA91A.studio.render(); });
   await page.waitForTimeout(300);
   await page.screenshot({ path: path.join(OUT, 'ocr-review.png') });
 

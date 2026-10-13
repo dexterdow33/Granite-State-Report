@@ -71,6 +71,7 @@ label.check { display: flex; align-items: center; gap: 6px; font-size: .9rem; }
 .alert { background: var(--surface-2); border-left: 4px solid var(--brand-2); padding: 8px 10px; font-size: .85rem; border-radius: 4px; }
 .alert.warn { border-left-color: var(--warn); }
 .alert.bad { border-left-color: var(--bad); }
+.alert.ok { border-left-color: var(--ok); }
 
 .row { display: flex; gap: 8px; align-items: center; }
 .row.wrap { flex-wrap: wrap; margin: 6px 0; }
@@ -192,12 +193,14 @@ textarea.letter { font-family: "Times New Roman", Georgia, serif; font-size: 1re
   .topbar, nav, .foot, #toasts, .nag { display: none; }
 }
 
-/* Batch document list */
+/* Batch and shelf document lists */
 .doc-list { display: grid; gap: 4px; margin: 6px 0 8px; }
-.doc-row { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 0 6px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 6px; cursor: pointer; background: var(--surface); }
+.doc-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; gap: 0 6px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 6px; background: var(--surface); }
+.batch-list .doc-row { cursor: pointer; }
 .doc-row:hover { border-color: var(--brand-2); }
 .doc-row.pending { border-left-color: var(--proposed); }
 .doc-row.current { background: var(--surface-2); border-left-color: var(--brand-2); }
-.doc-row .doc-name { font-weight: 600; font-size: .88rem; overflow-wrap: anywhere; }
-.doc-row .doc-sub { grid-column: 1; font-size: .76rem; color: var(--muted); }
-.doc-row button { grid-row: 1 / span 2; }
+.doc-row .doc-name { grid-column: 1; grid-row: 1; font-weight: 600; font-size: .88rem; overflow-wrap: anywhere; }
+.doc-row .doc-sub { grid-column: 1; grid-row: 2; font-size: .76rem; color: var(--muted); }
+.doc-row > button, .doc-row > .doc-actions { grid-column: 2; grid-row: 1 / span 2; }
+.doc-row .doc-actions { display: flex; gap: 4px; }

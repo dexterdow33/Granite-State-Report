@@ -122,7 +122,7 @@
     }
 
     const table = h('table', { class: 'grid' },
-      h('thead', {}, h('tr', {}, ['ID', 'Received', 'Requester', 'Agency', 'Records', '5-day window', 'Status', ''].map((c) => h('th', {}, c)))));
+      h('thead', {}, h('tr', {}, ['ID', 'Received', 'Requester', 'Agency', 'Records', '5-day window', 'Status', 'Files', ''].map((c) => h('th', {}, c)))));
     const tbody = h('tbody');
     for (const r of shown) {
       const s = statusOf(r);
@@ -134,10 +134,11 @@
         h('td', { class: 'desc', title: r.description || '' }, (r.description || '').slice(0, 90) + ((r.description || '').length > 90 ? '...' : '')),
         h('td', {}, h('div', {}, s.dueDate), badge(r)),
         h('td', {}, (STATUSES.find((x) => x.value === r.status) || STATUSES[0]).label),
+        h('td', {}, shelfCell(r)),
         h('td', { class: 'actions' },
           h('button', { class: 'small', onclick: () => edit(r) }, 'Edit'),
           h('button', { class: 'small', onclick: () => NS.app.go('letters', { requestId: r.id }) }, 'Letter'),
-          h('button', { class: 'small', onclick: () => NS.app.go('studio', { requestId: r.id }) }, 'Redact'),
+          h('button', { class: 'small', onclick: () => NS.app.go('studio', { requestId: r.id, openShelf: !!(r.shelf && r.shelf.length) }) }, (r.shelf && r.shelf.length) ? 'Open files' : 'Redact'),
           h('button', { class: 'small danger', onclick: () => remove(r) }, 'Delete'))));
     }
     table.appendChild(tbody);
@@ -147,8 +148,16 @@
       'The statute does not spell out a counting method; confirm the convention you use in Settings.'));
   }
 
+  function shelfCell(r) {
+    const files = r.shelf || [];
+    if (!files.length) return h('span', { class: 'help' }, 'none');
+    const signed = files.filter((f) => f.reviewed).length;
+    return h('span', { title: files.map((f) => f.name).join('\n') }, files.length + ' on shelf, ' + signed + ' signed off');
+  }
+
   async function remove(r) {
     if (!await confirmDialog('Delete ' + r.id + '? This cannot be undone unless you have a backup file.', 'Delete')) return;
+    for (const f of r.shelf || []) { try { await NS.filestore.deleteFile(f.id); } catch (e) { /* storage unavailable */ } }
     store.removeRequest(r.id);
     toast('Deleted ' + r.id);
   }

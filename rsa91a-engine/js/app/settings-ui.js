@@ -8,6 +8,8 @@
   function renderSettings() {
     const host = $('#view-settings');
     clear(host);
+    NS.filestore.usage().then((u) => { const el = $('#shelf-usage'); if (el) el.textContent = 'Shelf storage: ' + u.files + ' file(s), ' + (u.bytes / 1048576).toFixed(1) + ' MB in this browser.'; })
+      .catch((e) => { const el = $('#shelf-usage'); if (el) el.textContent = 'Shelf storage unavailable here: ' + e.message; });
     const s = store.state.settings;
     const p = s.profile;
     const text = (label, key, obj, type) => h('label', {}, h('span', {}, label),
@@ -52,6 +54,8 @@
       h('section', { class: 'panel' },
         h('h3', {}, 'Data and backup'),
         h('p', {}, 'All data stays in this browser on this computer. Nothing is sent anywhere.'),
+        h('p', { class: 'help' }, 'The backup file holds requests, settings and each shelf file\'s marks and sign-off summary. The shelf files themselves (the PDFs) live in this browser\'s database and are not in the backup; keep your own copies of originals.'),
+        h('p', { class: 'help', id: 'shelf-usage' }, 'Shelf storage: checking...'),
         !store.storageOk ? h('p', { class: 'alert bad' }, 'Browser storage is unavailable here (private window or blocked site data). Your work will be lost when you close this tab unless you download a backup.') : null,
         h('p', { class: 'help' }, 'Last backup: ' + (store.state.lastBackup ? store.state.lastBackup.replace('T', ' ').slice(0, 16) : 'never')),
         h('div', { class: 'row wrap' },
@@ -110,7 +114,8 @@
       sec('Workflow',
         h('ol', {},
           h('li', {}, 'Log the request under Requests. The tracker shows the 5-business-day window under RSA 91-A:4, IV(b).'),
-          h('li', {}, 'Open every file for the request in the Redaction Studio at once. Each file keeps its own marks; one export numbers them all in one Bates sequence.'),
+          h('li', {}, 'Open every file for the request in the Redaction Studio at once. With a request linked, the files go on its shelf and stay there, with their marks, between sessions. Each file keeps its own marks; one export numbers them all in one Bates sequence.'),
+          h('li', {}, 'Sign off each file by name once every mark has a decision. Export refuses files without a current sign-off, and the name and time go in the redaction log.'),
           h('li', {}, 'If the records are not ready, draft an Acknowledgment with a time estimate and log it as sent.'),
           h('li', {}, 'Open each record in the Redaction Studio, linked to the request. Scan, review every proposed mark, add boxes by hand, pick the exemption and state the reason.'),
           h('li', {}, 'Export. The engine rebuilds the file and verifies it. Only a passing file is saved.'),

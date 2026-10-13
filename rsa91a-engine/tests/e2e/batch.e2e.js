@@ -70,7 +70,7 @@ async function main() {
   assert.strictEqual(perFile[0].marks.filter((t) => t === 'Jane Q. Public').length, 3, 'term on every page of file 1');
 
   // Switch to file 2 via the UI list, withhold its page 2, then accept everything.
-  await page.click('.doc-row:nth-child(2) .doc-name');
+  await page.click('.batch-list .doc-row:nth-child(2) .doc-name');
   await page.waitForTimeout(300);
   const pager2 = await page.textContent('#pager-label');
   assert.match(pager2, /File 2 of 2 · Page 1 of 2 · TOWN-000103/, 'Bates continues across files: ' + pager2);
@@ -78,6 +78,14 @@ async function main() {
   await page.waitForTimeout(200);
   await page.click('text=Withhold this entire page');
   await page.evaluate(() => { for (const e of window.RSA91A.studio.state.docs) for (const m of e.marks) m.status = 'accepted'; for (const m of window.RSA91A.studio.state.marks) m.status = 'accepted'; });
+  // Export must refuse until every file is signed off.
+  const refused = await page.evaluate(async () => { await window.RSA91A.studio.exportBatch(); return window.RSA91A.studio.state.lastBatch === null; });
+  assert.ok(refused, 'export should refuse unsigned files');
+  await page.evaluate(async () => {
+    const st = window.RSA91A.studio;
+    for (let i = 0; i < st.state.docs.length; i++) { await st.activate(i); if (!await st.signOff('Batch Reviewer', 'file ' + (i + 1))) throw new Error('sign-off refused on file ' + (i + 1)); }
+    await st.activate(1);
+  });
   await page.evaluate(() => window.RSA91A.studio.render());
   await page.waitForTimeout(200);
   await page.screenshot({ path: path.join(OUT, 'batch-review.png') });
@@ -142,6 +150,8 @@ z = zipfile.ZipFile(sys.argv[1]); print(z.testzip()); z.extractall(sys.argv[2]);
   }
   const csvText = fs.readFileSync(saved[csvName], 'utf8');
   assert.ok(csvText.includes('123-45-6789') && csvText.includes('TOWN-000104') && csvText.includes('Page withheld'), 'internal audit has covered text and withheld row');
+  assert.ok(csvText.includes('Batch Reviewer'), 'internal audit names the reviewer');
+  assert.ok(logText.includes('BatchReviewer'), 'public log names the reviewer');
 
   const prod = await page.evaluate((id) => window.RSA91A.store.getRequest(id).productions, reqId);
   assert.strictEqual(prod.length, 1);
@@ -149,6 +159,7 @@ z = zipfile.ZipFile(sys.argv[1]); print(z.testzip()); z.extractall(sys.argv[2]);
   assert.strictEqual(prod[0].batesFirst, 'TOWN-000100');
   assert.strictEqual(prod[0].batesLast, 'TOWN-000104');
   assert.strictEqual(prod[0].pages, 5);
+  assert.strictEqual(prod[0].files[0].reviewedBy, 'Batch Reviewer');
 
   await browser.close();
   const real = errors.filter((e) => !/fake worker/i.test(e));
