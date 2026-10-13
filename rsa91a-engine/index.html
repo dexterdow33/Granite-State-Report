@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' 'wasm-unsafe-eval' file:; style-src 'self' 'unsafe-inline' file:; img-src 'self' data: blob: file:; connect-src 'self' data: blob: file:; worker-src 'self' blob: file:; font-src 'self' data: file:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' 'wasm-unsafe-eval' blob: file:; style-src 'self' 'unsafe-inline' file:; img-src 'self' data: blob: file:; connect-src 'self' data: blob: file:; worker-src 'self' blob: file:; font-src 'self' data: file:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>RSA91A-Engine</title>
 <link rel="stylesheet" href="css/app.css">
 </head>
@@ -31,7 +31,7 @@
   <div id="view-settings" class="view" hidden></div>
   <div id="view-help" class="view" hidden></div>
 </main>
-<footer class="foot">RSA91A-Engine 1.1.0 &middot; Ninth State Software &middot; Works offline. Drafting tool, not legal advice.</footer>
+<footer class="foot">RSA91A-Engine 1.2.0 &middot; Ninth State Software &middot; Works offline. Drafting tool, not legal advice.</footer>
 <div id="toasts" aria-live="polite"></div>
 
 <script src="js/vendor/pdf.min.js"></script>
@@ -41,6 +41,7 @@
 <script src="js/core/citations.js"></script>
 <script src="js/core/letters.js"></script>
 <script src="js/core/textmap.js"></script>
+<script src="js/core/zip.js"></script>
 <script src="js/app/ui.js"></script>
 <script src="js/app/store.js"></script>
 <script src="js/app/ocr.js"></script>

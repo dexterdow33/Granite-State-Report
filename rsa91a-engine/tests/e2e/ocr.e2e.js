@@ -59,9 +59,19 @@ async function main() {
   assert.deepStrictEqual(textless, [1], 'image page should have no text layer');
 
   const t0 = Date.now();
-  const done = await page.evaluate(() => window.RSA91A.studio.runOcr());
+  // Count main-thread timer ticks while OCR runs: a responsive page keeps ticking.
+  const { done, ticks, mode } = await page.evaluate(async () => {
+    let ticks = 0;
+    const iv = setInterval(() => { ticks++; }, 10);
+    const done = await window.RSA91A.studio.runOcr();
+    clearInterval(iv);
+    return { done, ticks, mode: window.RSA91A.ocr.mode };
+  });
   const ocrMs = Date.now() - t0;
   assert.strictEqual(done, 1);
+  assert.strictEqual(mode, 'worker', 'OCR should run in a worker, got ' + mode);
+  console.log('Main-thread ticks during OCR:', ticks, 'over', ocrMs, 'ms');
+  assert.ok(ticks > ocrMs / 100, 'main thread was blocked during OCR: ' + ticks + ' ticks in ' + ocrMs + ' ms');
   const pageText = await page.evaluate(async () => (await window.RSA91A.studio.state.doc.pageText(0)).text);
   console.log('OCR took', ocrMs, 'ms. Text:', JSON.stringify(pageText));
   assert.match(pageText, /123-45-6789/, 'OCR missed the SSN');

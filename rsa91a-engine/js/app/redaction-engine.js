@@ -543,5 +543,22 @@
     return doc.save();
   }
 
-  NS.engine = { SourceDocument, exportRedacted, verify, buildLogPdf, sha256Hex, batesLabel, toViewportRect, normRect, ascii, wrapText };
+  /** Concatenates several PDFs (as bytes) into one, in order. Used for a combined batch output. */
+  async function mergePdfs(list, title) {
+    const { PDFDocument } = root.PDFLib;
+    const out = await PDFDocument.create();
+    for (const bytes of list) {
+      const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
+      const pages = await out.copyPages(src, src.getPageIndices());
+      for (const p of pages) out.addPage(p);
+    }
+    out.setTitle(ascii(title || 'Redacted production'));
+    out.setAuthor(''); out.setSubject(''); out.setKeywords([]);
+    out.setProducer('RSA91A-Engine'); out.setCreator('RSA91A-Engine');
+    const now = new Date();
+    out.setCreationDate(now); out.setModificationDate(now);
+    return out.save({ useObjectStreams: true });
+  }
+
+  NS.engine = { SourceDocument, exportRedacted, verify, buildLogPdf, mergePdfs, sha256Hex, batesLabel, toViewportRect, normRect, ascii, wrapText };
 })(typeof self !== 'undefined' ? self : this);

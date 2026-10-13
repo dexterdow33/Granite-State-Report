@@ -191,3 +191,13 @@ textarea.letter { font-family: "Times New Roman", Georgia, serif; font-size: 1re
 @media print {
   .topbar, nav, .foot, #toasts, .nag { display: none; }
 }
+
+/* Batch document list */
+.doc-list { display: grid; gap: 4px; margin: 6px 0 8px; }
+.doc-row { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 0 6px; align-items: center; padding: 6px 8px; border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 6px; cursor: pointer; background: var(--surface); }
+.doc-row:hover { border-color: var(--brand-2); }
+.doc-row.pending { border-left-color: var(--proposed); }
+.doc-row.current { background: var(--surface-2); border-left-color: var(--brand-2); }
+.doc-row .doc-name { font-weight: 600; font-size: .88rem; overflow-wrap: anywhere; }
+.doc-row .doc-sub { grid-column: 1; font-size: .76rem; color: var(--muted); }
+.doc-row button { grid-row: 1 / span 2; }

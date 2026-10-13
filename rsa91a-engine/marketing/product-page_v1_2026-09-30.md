@@ -35,6 +35,9 @@ Then it checks its own work. The output is reopened and tested for leftover text
 ### Reads scans
 Most town records are scans, and a scan is a picture. Built-in OCR turns the picture into text on your computer, so the scanner below works on scanned pages too. It even tolerates the character misreads OCR makes when matching names you list.
 
+### Handles the whole request at once
+A request is rarely one file. Open them all, scan them all with the same terms, review file by file, and export one production: one Bates sequence across every file, one redaction log, one zip. OCR runs in the background, so you keep working while scans are read.
+
 ### Finds the sensitive stuff first
 The scanner proposes redactions for Social Security and taxpayer ID numbers, bank and card numbers, phone numbers, emails, dates of birth, home addresses and any names or terms you list. It also reads filled-in form fields. Every hit is a proposal. A person accepts or rejects each one, draws boxes by hand, and withholds whole pages when needed.
 

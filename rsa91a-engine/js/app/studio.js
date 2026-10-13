@@ -3,9 +3,17 @@
   'use strict';
   const NS = root.RSA91A;
   const { h, $, clear, toast, download, readFile, pickFile, confirmDialog, csv } = NS.ui;
-  const { store, detectors, citations, deadlines, engine } = NS;
+  const { store, detectors, citations, deadlines, engine, zip } = NS;
 
+  /*
+   * A batch is a list of document entries. The fields on S that describe the
+   * current document (doc, marks, withheld, ...) are views of docs[cur];
+   * stash() writes them back and restore(i) loads another entry. Exports
+   * number pages across the whole batch in one Bates sequence.
+   */
   const S = {
+    docs: [],
+    cur: -1,
     doc: null,
     page: 0,
     zoom: 1,
@@ -21,55 +29,113 @@
     terms: '',
     regex: '',
     textless: [],
+    annotated: [],
     ocrConf: {},
     busy: false,
     preview: false,
     lastExport: null,
+    lastBatch: null,
+    mergeOutput: false,
     renderToken: 0,
   };
 
+  const DOC_FIELDS = ['doc', 'page', 'marks', 'withheld', 'selected', 'nextId', 'textless', 'annotated', 'ocrConf', 'lastExport'];
   const exemptionOptions = () => citations.exemptions(store.state.userCitations);
   const citeOf = (id) => {
     const c = citations.byId(id, store.state.userCitations);
     return c ? c.cite : '';
   };
 
-  // ---------- document ----------
+  // ---------- documents and batch ----------
 
-  async function open(file) {
-    if (!file) return;
-    const mime = file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : '');
-    if (!['application/pdf', 'image/png', 'image/jpeg'].includes(mime)) {
-      toast('Open a PDF, PNG, or JPEG file.', 'error');
-      return;
+  function stash() {
+    if (S.cur < 0 || !S.docs[S.cur]) return;
+    const e = S.docs[S.cur];
+    for (const k of DOC_FIELDS) e[k] = S[k];
+  }
+
+  function restore(i) {
+    const e = S.docs[i];
+    S.cur = i;
+    for (const k of DOC_FIELDS) S[k] = e[k];
+  }
+
+  function emptyEntry(doc) {
+    return { doc, name: doc.fileName, page: 0, marks: [], withheld: new Map(), selected: null, nextId: 1, textless: [], annotated: [], ocrConf: {}, lastExport: null };
+  }
+
+  /** First page index of entry i within the batch Bates sequence. */
+  function pageOffset(i) {
+    let n = 0;
+    for (let k = 0; k < i; k++) n += S.docs[k].doc.numPages;
+    return n;
+  }
+
+  function totalPages() {
+    return S.docs.reduce((a, e) => a + e.doc.numPages, 0);
+  }
+
+  function mimeOf(file) {
+    return file.type || (file.name.toLowerCase().endsWith('.pdf') ? 'application/pdf' : '');
+  }
+
+  /**
+   * Opens one file or several. Several files form a batch (or extend one when
+   * opts.append is set). Each document keeps its own marks; export numbers all
+   * of them in one Bates sequence.
+   */
+  async function open(files, opts) {
+    const list = (Array.isArray(files) || (files && typeof files.length === 'number' && !(files instanceof File))) ? Array.from(files) : (files ? [files] : []);
+    const good = list.filter((f) => ['application/pdf', 'image/png', 'image/jpeg'].includes(mimeOf(f)));
+    if (!good.length) return toast('Open PDF, PNG, or JPEG files.', 'error');
+    if (good.length < list.length) toast((list.length - good.length) + ' file(s) skipped: not PDF, PNG, or JPEG.', 'warn');
+    const append = !!(opts && opts.append) && S.docs.length;
+    if (!append) {
+      stash();
+      const unsaved = S.docs.some((e) => e.marks.length);
+      if (unsaved && !await confirmDialog('Close the current document(s)? Unsaved redaction marks will be lost unless you saved the session.', 'Open new files')) return;
+      for (const e of S.docs) e.doc.destroy();
+      S.docs = [];
+      S.cur = -1;
+      S.lastBatch = null;
+    } else {
+      stash();
     }
-    if (S.marks.length && !await confirmDialog('Close the current document? Unsaved redaction marks will be lost unless you saved the session.', 'Open new file')) return;
-    setBusy('Opening ' + file.name + '...');
+    let opened = 0;
     try {
-      const bytes = await readFile(file);
-      if (S.doc) S.doc.destroy();
-      S.doc = await engine.SourceDocument.open(bytes, file.name, mime);
-      S.page = 0;
-      S.marks = [];
-      S.withheld = new Map();
-      S.selected = null;
-      S.lastExport = null;
-      S.textless = [];
-      S.annotated = [];
-      S.ocrConf = {};
-      for (let i = 0; i < S.doc.numPages; i++) {
-        if (!await S.doc.hasText(i)) S.textless.push(i + 1);
-        if ((await S.doc.annotations(i)).length) S.annotated.push(i + 1);
+      for (const [k, file] of good.entries()) {
+        setBusy('Opening ' + file.name + (good.length > 1 ? ' (' + (k + 1) + ' of ' + good.length + ')' : '') + '...');
+        const bytes = await readFile(file);
+        const doc = await engine.SourceDocument.open(bytes, file.name, mimeOf(file));
+        const e = emptyEntry(doc);
+        for (let i = 0; i < doc.numPages; i++) {
+          if (!await doc.hasText(i)) e.textless.push(i + 1);
+          if ((await doc.annotations(i)).length) e.annotated.push(i + 1);
+        }
+        S.docs.push(e);
+        opened++;
       }
+      restore(append ? S.docs.length - opened : 0);
       await fitWidth();
       renderSidebar();
-      toast('Opened ' + file.name + ' (' + S.doc.numPages + ' page' + (S.doc.numPages === 1 ? '' : 's') + ')', 'ok');
+      const pages = totalPages();
+      toast('Opened ' + opened + ' file' + (opened === 1 ? '' : 's') + ' (' + pages + ' page' + (pages === 1 ? '' : 's') + ')', 'ok');
     } catch (e) {
       console.error(e);
       toast('Could not open file: ' + e.message, 'error');
+      if (S.cur < 0 && S.docs.length) { restore(0); await fitWidth(); }
+      renderSidebar();
     } finally {
       setBusy(null);
     }
+  }
+
+  async function activate(i) {
+    if (i === S.cur || !S.docs[i]) return;
+    stash();
+    restore(i);
+    await fitWidth();
+    renderSidebar();
   }
 
   function setBusy(msg) {
@@ -132,7 +198,10 @@
 
   function updatePager() {
     const p = $('#pager-label');
-    if (p && S.doc) p.textContent = 'Page ' + (S.page + 1) + ' of ' + S.doc.numPages;
+    if (p && S.doc) {
+      const b = batesFor(S.page);
+      p.textContent = (S.docs.length > 1 ? 'File ' + (S.cur + 1) + ' of ' + S.docs.length + ' · ' : '') + 'Page ' + (S.page + 1) + ' of ' + S.doc.numPages + (b ? ' · ' + b : '');
+    }
     const z = $('#zoom-label');
     if (z) z.textContent = Math.round(S.zoom * 100) + '%';
   }
@@ -196,17 +265,22 @@
 
   // ---------- marks ----------
 
-  function addMarks(list, status, source) {
+  function addMarksTo(entry, list, status, source) {
     let added = 0;
     for (const m of list) {
-      const dup = S.marks.find((x) => x.page === m.page && x.status !== 'rejected' &&
+      const dup = entry.marks.find((x) => x.page === m.page && x.status !== 'rejected' &&
         JSON.stringify(x.rects) === JSON.stringify(m.rects));
       if (dup) continue;
-      S.marks.push(Object.assign({
-        id: S.nextId++, status, source, citationId: S.defaultCitation, reason: S.defaultReason, created: new Date().toISOString(),
+      entry.marks.push(Object.assign({
+        id: entry.nextId++, status, source, citationId: S.defaultCitation, reason: S.defaultReason, created: new Date().toISOString(),
       }, m));
       added++;
     }
+    return added;
+  }
+
+  function addMarks(list, status, source) {
+    const added = addMarksTo(S, list, status, source);
     drawOverlay();
     renderMarkList();
     return added;
@@ -245,23 +319,32 @@
     renderMarkList();
   }
 
-  /** OCR every page that still has no text. Returns the number of pages processed. */
-  async function runOcr(pages) {
-    if (!S.doc) return 0;
-    const todo = pages || await S.doc.textlessPages();
+  // ---------- OCR and scanning ----------
+
+  /** OCR every page of `entry` that still has no text. Returns pages processed. */
+  async function runOcrFor(entry, label) {
+    const todo = await entry.doc.textlessPages();
     if (!todo.length) return 0;
+    let done = 0;
+    for (const i of todo) {
+      const where = (label ? label + ' ' : '') + 'page ' + (i + 1) + ' of ' + entry.doc.numPages;
+      const r = await entry.doc.ocrPage(i, 300, (msg) => setBusy(msg || ('OCR ' + where + '...')));
+      setBusy('OCR ' + where + '...');
+      entry.ocrConf[i] = r.meanConf;
+      done++;
+    }
+    entry.textless = (await entry.doc.textlessPages()).map((i) => i + 1);
+    return done;
+  }
+
+  async function runOcr() {
+    if (!S.doc) return 0;
     setBusy('Preparing OCR...');
     let done = 0;
     try {
-      for (const i of todo) {
-        const r = await S.doc.ocrPage(i, 300, (msg) => setBusy(msg || ('OCR page ' + (i + 1) + ' of ' + S.doc.numPages + '...')));
-        setBusy('OCR page ' + (i + 1) + ' of ' + S.doc.numPages + '...');
-        S.ocrConf[i] = r.meanConf;
-        done++;
-      }
-      S.textless = (await S.doc.textlessPages()).map((i) => i + 1);
+      done = await runOcrFor(S);
       renderSidebar();
-      toast('OCR read ' + done + ' page(s). OCR misses and misreads words; review those pages by eye.', 'warn');
+      if (done) toast('OCR read ' + done + ' page(s). OCR misses and misreads words; review those pages by eye.', 'warn');
     } catch (e) {
       console.error(e);
       toast('OCR failed: ' + e.message, 'error');
@@ -271,29 +354,65 @@
     return done;
   }
 
+  function scanOptions() {
+    const regexes = [];
+    if (S.regex.trim()) {
+      new RegExp(S.regex); // throws on a bad pattern
+      regexes.push({ source: S.regex.trim(), flags: 'gi' });
+    }
+    return { detectorIds: Array.from(S.detectorIds), terms: S.terms.split('\n').map((t) => t.trim()).filter(Boolean), regexes };
+  }
+
+  async function scanFor(entry, opts, label) {
+    const found = await entry.doc.scan(opts, (i, n) => setBusy('Scanning ' + (label ? label + ' ' : '') + 'page ' + i + ' of ' + n + '...'));
+    return addMarksTo(entry, found, 'proposed', 'auto');
+  }
+
   async function scan() {
     if (!S.doc) return toast('Open a document first.', 'error');
     if (S.textless.length && await confirmDialog(S.textless.length + ' page(s) have no text layer, so the scanner cannot read them. Run OCR on those pages first? (The OCR engine loads once, about 12 MB, and stays offline.)', 'Run OCR')) {
       await runOcr();
     }
-    const regexes = [];
-    if (S.regex.trim()) {
-      try { new RegExp(S.regex); } catch (e) { return toast('Custom pattern is not a valid regular expression: ' + e.message, 'error'); }
-      regexes.push({ source: S.regex.trim(), flags: 'gi' });
-    }
+    let opts;
+    try { opts = scanOptions(); } catch (e) { return toast('Custom pattern is not a valid regular expression: ' + e.message, 'error'); }
     setBusy('Scanning...');
     try {
-      const found = await S.doc.scan({
-        detectorIds: Array.from(S.detectorIds),
-        terms: S.terms.split('\n').map((t) => t.trim()).filter(Boolean),
-        regexes,
-      }, (i, n) => setBusy('Scanning page ' + i + ' of ' + n + '...'));
-      const added = addMarks(found, 'proposed', 'auto');
+      const added = await scanFor(S, opts);
+      drawOverlay();
+      renderMarkList();
       toast(added + ' new proposed redaction' + (added === 1 ? '' : 's') + ' found. Review each one before export.', added ? 'ok' : 'info');
       if (S.textless.length) toast(S.textless.length + ' page(s) have no text layer. Check them by eye and draw boxes by hand.', 'warn');
     } catch (e) {
       console.error(e);
       toast('Scan failed: ' + e.message, 'error');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /** OCR (where needed) and scan every document in the batch with the current settings. */
+  async function scanAll() {
+    if (!S.docs.length) return;
+    stash();
+    let opts;
+    try { opts = scanOptions(); } catch (e) { return toast('Custom pattern is not a valid regular expression: ' + e.message, 'error'); }
+    const textless = S.docs.reduce((a, e) => a + e.textless.length, 0);
+    let doOcr = false;
+    if (textless) doOcr = await confirmDialog(textless + ' page(s) across the batch have no text layer. Run OCR on them first?', 'Run OCR');
+    let added = 0;
+    try {
+      for (const [k, e] of S.docs.entries()) {
+        const label = 'file ' + (k + 1) + '/' + S.docs.length;
+        if (doOcr) await runOcrFor(e, label);
+        added += await scanFor(e, opts, label);
+      }
+      restore(S.cur);
+      renderSidebar();
+      drawOverlay();
+      toast(added + ' new proposed redaction' + (added === 1 ? '' : 's') + ' across ' + S.docs.length + ' files. Review every file before export.', added ? 'ok' : 'info');
+    } catch (e) {
+      console.error(e);
+      toast('Batch scan failed: ' + e.message, 'error');
     } finally {
       setBusy(null);
     }
@@ -306,6 +425,51 @@
       exemptionOptions().map((c) => h('option', { value: c.id, selected: c.id === value ? true : null }, c.cite + (c.userSupplied ? ' (user-added)' : ''))));
   }
 
+  function entrySummary(e) {
+    const counts = { proposed: 0, accepted: 0 };
+    for (const m of e.marks) if (counts[m.status] !== undefined) counts[m.status]++;
+    const bits = [e.doc.numPages + ' p.'];
+    if (counts.proposed) bits.push(counts.proposed + ' to review');
+    if (counts.accepted) bits.push(counts.accepted + ' accepted');
+    if (e.withheld.size) bits.push(e.withheld.size + ' withheld');
+    if (e.textless.length) bits.push(e.textless.length + ' no text');
+    if (e.lastExport) bits.push(e.lastExport.report.pass ? 'exported' : 'FAILED');
+    return bits.join(', ');
+  }
+
+  function batchSection() {
+    stash();
+    const r = store.state.settings.redaction;
+    const list = h('div', { class: 'doc-list' }, S.docs.map((e, i) => {
+      const proposed = e.marks.filter((m) => m.status === 'proposed').length;
+      const b0 = r.bates === false ? null : engine.batesLabel(r.batesPrefix, (r.batesStart || 1) + pageOffset(i), r.batesDigits || 6);
+      return h('div', { class: 'doc-row' + (i === S.cur ? ' current' : '') + (proposed ? ' pending' : ''), onclick: () => activate(i) },
+        h('div', { class: 'doc-name' }, (i + 1) + '. ' + e.name),
+        h('div', { class: 'doc-sub' }, entrySummary(e) + (b0 ? ' · ' + b0 : '')),
+        h('button', { class: 'small danger', title: 'Remove from batch', onclick: async (ev) => {
+          ev.stopPropagation();
+          if (!await confirmDialog('Remove ' + e.name + (e.marks.length ? ' and its ' + e.marks.length + ' marks' : '') + ' from the batch?', 'Remove')) return;
+          e.doc.destroy();
+          S.docs.splice(i, 1);
+          if (!S.docs.length) { S.cur = -1; for (const k of DOC_FIELDS) S[k] = emptyEntry({ fileName: '', numPages: 0 })[k]; S.doc = null; renderSidebar(); return; }
+          S.cur = -1;
+          restore(Math.min(i, S.docs.length - 1));
+          await fitWidth();
+          renderSidebar();
+        } }, 'x'));
+    }));
+    const pending = S.docs.reduce((a, e) => a + e.marks.filter((m) => m.status === 'proposed').length, 0);
+    return h('section', {},
+      h('h3', {}, 'Batch: ' + S.docs.length + ' files, ' + totalPages() + ' pages'),
+      list,
+      h('div', { class: 'row wrap' },
+        h('button', { class: 'small', onclick: scanAll }, 'Scan all files'),
+        h('button', { class: 'small ghost', onclick: async () => open(await pickFile('application/pdf,image/png,image/jpeg', true), { append: true }) }, 'Add files'),
+        h('button', { class: 'small', disabled: S.cur <= 0, onclick: () => activate(S.cur - 1) }, 'Prev file'),
+        h('button', { class: 'small', disabled: S.cur >= S.docs.length - 1, onclick: () => activate(S.cur + 1) }, 'Next file')),
+      h('p', { class: 'help' }, 'One Bates sequence runs across the files in this order. ' + (pending ? pending + ' mark(s) still need review.' : 'All marks reviewed.')));
+  }
+
   function renderSidebar() {
     const sb = $('#studio-sidebar');
     if (!sb) return;
@@ -313,13 +477,14 @@
     const reqs = store.state.requests;
 
     sb.appendChild(h('section', {},
-      h('h3', {}, '1. Document'),
-      h('div', { class: 'row' },
-        h('button', { class: 'primary', onclick: async () => open(await pickFile('application/pdf,image/png,image/jpeg')) }, S.doc ? 'Open another file' : 'Open PDF or image')),
+      h('h3', {}, '1. Document' + (S.docs.length > 1 ? 's' : '')),
+      h('div', { class: 'row wrap' },
+        h('button', { class: 'primary', onclick: async () => open(await pickFile('application/pdf,image/png,image/jpeg', true)) }, S.doc ? 'Open other files' : 'Open PDF or image files'),
+        S.doc ? h('button', { class: 'ghost', onclick: async () => open(await pickFile('application/pdf,image/png,image/jpeg', true), { append: true }) }, 'Add to batch') : null),
       S.doc ? h('dl', { class: 'meta' },
         h('dt', {}, 'File'), h('dd', {}, S.doc.fileName),
         h('dt', {}, 'Pages'), h('dd', {}, String(S.doc.numPages)),
-        h('dt', {}, 'SHA-256'), h('dd', { class: 'mono small', title: S.doc.sha256 }, S.doc.sha256.slice(0, 16) + '...')) : h('p', { class: 'help' }, 'Or drag a file onto the page area.'),
+        h('dt', {}, 'SHA-256'), h('dd', { class: 'mono small', title: S.doc.sha256 }, S.doc.sha256.slice(0, 16) + '...')) : h('p', { class: 'help' }, 'Pick one file, or several to redact as one production. Or drag files onto the page area.'),
       (S.annotated || []).length ? h('p', { class: 'alert warn' }, 'Form fields or comments on page(s) ' + S.annotated.join(', ') + '. Their visible content is printed into the output; the scan checks their values, but review them by eye.') : null,
       S.textless.length ? h('div', { class: 'alert warn' },
         h('p', {}, 'No text layer on page(s) ' + S.textless.join(', ') + '. These are likely scans. Run OCR so the scanner can read them, then still review those pages by eye.'),
@@ -329,6 +494,8 @@
         h('select', { onchange: (e) => { S.requestId = e.target.value; } },
           h('option', { value: '' }, 'None'),
           reqs.map((r) => h('option', { value: r.id, selected: r.id === S.requestId ? true : null }, r.id + ' - ' + (r.requesterName || r.agency || '')))))));
+
+    if (S.docs.length > 1) sb.appendChild(batchSection());
 
     const detList = h('div', { class: 'checks' }, detectors.DETECTORS.map((d) => h('label', { class: 'check' },
       h('input', { type: 'checkbox', checked: S.detectorIds.has(d.id), onchange: (e) => { if (e.target.checked) S.detectorIds.add(d.id); else S.detectorIds.delete(d.id); } }),
@@ -342,7 +509,9 @@
       h('label', {}, h('span', {}, 'Names and terms'), terms),
       h('label', {}, h('span', {}, 'Custom pattern (regular expression)'),
         h('input', { type: 'text', value: S.regex, placeholder: 'e.g. \\d{3}-\\d{4}-CV-\\d{5}', oninput: (e) => { S.regex = e.target.value; } })),
-      h('button', { class: 'primary', disabled: !S.doc, onclick: scan }, 'Scan document'),
+      h('div', { class: 'row wrap' },
+        h('button', { class: 'primary', disabled: !S.doc, onclick: scan }, S.docs.length > 1 ? 'Scan this file' : 'Scan document'),
+        S.docs.length > 1 ? h('button', { class: 'primary', onclick: scanAll }, 'Scan all files') : null),
       h('p', { class: 'help' }, 'Detectors propose. Nothing is redacted until you accept it. Draw a box on the page to redact anything by hand.')));
 
     const reason = h('textarea', { rows: 2, placeholder: 'Why the exemption applies (required in a written denial)' });
@@ -359,13 +528,14 @@
         let n = 0;
         for (const m of S.marks) if (m.status !== 'rejected') { m.citationId = S.defaultCitation; m.reason = S.defaultReason; n++; }
         renderMarkList(); drawOverlay(); toast('Applied to ' + n + ' marks.');
-      } }, 'Apply to all current marks')));
+      } }, 'Apply to all marks in this file')));
 
     sb.appendChild(h('section', {}, h('h3', {}, '4. Review marks'), h('div', { id: 'mark-list' })));
     sb.appendChild(h('section', {}, h('h3', {}, '5. This page'), h('div', { id: 'page-tools' })));
     sb.appendChild(exportSection());
     renderMarkList();
     renderPageTools();
+    updatePager();
   }
 
   function renderMarkList() {
@@ -408,7 +578,13 @@
 
   function nextProposed() {
     const pages = [...new Set(S.marks.filter((m) => m.status === 'proposed').map((m) => m.page))].sort((a, b) => a - b);
-    if (!pages.length) return toast('No proposed marks left to review.', 'ok');
+    if (!pages.length) {
+      // Move on to the next file in the batch that still has proposed marks.
+      stash();
+      const k = S.docs.findIndex((e, i) => i !== S.cur && e.marks.some((m) => m.status === 'proposed'));
+      if (k >= 0) { activate(k).then(nextProposed); return; }
+      return toast('No proposed marks left to review.', 'ok');
+    }
     const next = pages.find((p) => p > S.page);
     goPage(next === undefined ? pages[0] : next);
   }
@@ -438,6 +614,7 @@
   function exportSection() {
     const r = store.state.settings.redaction;
     const saveR = () => store.save();
+    const batch = S.docs.length > 1;
     return h('section', {},
       h('h3', {}, '6. Export'),
       h('div', { class: 'grid2' },
@@ -450,15 +627,21 @@
         h('label', {}, h('span', {}, 'Bates start'), h('input', { type: 'number', min: 1, value: r.batesStart || 1, oninput: (e) => { r.batesStart = Math.max(1, Number(e.target.value) || 1); saveR(); } }))),
       h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: r.bates !== false, onchange: (e) => { r.bates = e.target.checked; saveR(); } }), ' Stamp Bates numbers'),
       h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: r.labels, onchange: (e) => { r.labels = e.target.checked; saveR(); } }), ' Print exemption on each box'),
-      h('button', { class: 'primary block', disabled: !S.doc, onclick: doExport }, 'Export redacted PDF'),
-      h('div', { id: 'verify-report' }, S.lastExport ? reportView(S.lastExport.report) : null),
-      h('div', { class: 'row wrap' },
+      batch ? h('label', { class: 'check' }, h('input', { type: 'checkbox', checked: S.mergeOutput, onchange: (e) => { S.mergeOutput = e.target.checked; } }), ' Also include one combined PDF of all files') : null,
+      batch
+        ? h('button', { class: 'primary block', onclick: exportBatch }, 'Export production (' + S.docs.length + ' files, one Bates sequence)')
+        : h('button', { class: 'primary block', disabled: !S.doc, onclick: doExport }, 'Export redacted PDF'),
+      batch ? h('button', { class: 'block', disabled: !S.doc, onclick: doExport }, 'Export this file only') : null,
+      h('div', { id: 'verify-report' }, S.lastBatch ? batchReportView(S.lastBatch) : (S.lastExport ? reportView(S.lastExport.report) : null)),
+      !batch ? h('div', { class: 'row wrap' },
         h('button', { class: 'small', disabled: !S.lastExport, onclick: exportPublicLog }, 'Redaction log (PDF)'),
-        h('button', { class: 'small', disabled: !S.lastExport, onclick: exportInternalLog }, 'Internal audit log (CSV)')),
+        h('button', { class: 'small', disabled: !S.lastExport, onclick: exportInternalLog }, 'Internal audit log (CSV)')) : null,
       h('div', { class: 'row wrap' },
         h('button', { class: 'small ghost', disabled: !S.doc, onclick: saveSession }, 'Save session'),
         h('button', { class: 'small ghost', disabled: !S.doc, onclick: loadSession }, 'Load session')),
-      h('p', { class: 'help' }, 'Every page of the output is an image; text under the boxes no longer exists in the file. The output is not text-searchable.'));
+      h('p', { class: 'help' }, batch
+        ? 'The production is a zip: one redacted PDF per file, numbered in one Bates sequence, plus the redaction log. The internal audit log downloads separately; do not send it to the requester.'
+        : 'Every page of the output is an image; text under the boxes no longer exists in the file. The output is not text-searchable.'));
   }
 
   function reportView(rep) {
@@ -467,53 +650,75 @@
       h('ul', {}, rep.checks.map((c) => h('li', { class: c.ok ? 'ok' : 'bad' }, (c.ok ? 'PASS ' : 'FAIL ') + c.name + ' - ' + c.detail))));
   }
 
-  function batesFor(i) {
-    const r = store.state.settings.redaction;
-    if (r.bates === false) return null;
-    return engine.batesLabel(r.batesPrefix, (r.batesStart || 1) + i, r.batesDigits || 6);
+  function batchReportView(b) {
+    return h('div', { class: 'report ' + (b.pass ? 'pass' : 'fail') },
+      h('strong', {}, b.pass ? 'Production verified: ' + b.files.length + ' files, ' + b.pages + ' pages, ' + (b.batesFirst ? b.batesFirst + ' - ' + b.batesLast : 'no Bates') : 'VERIFICATION FAILED - production not saved'),
+      h('ul', {}, b.files.map((f) => h('li', { class: f.report.pass ? 'ok' : 'bad' }, (f.report.pass ? 'PASS ' : 'FAIL ') + f.outName + (f.report.pass ? '' : ': ' + f.report.checks.filter((c) => !c.ok).map((c) => c.name).join('; '))))));
   }
 
-  function pageRef(i) {
-    const b = batesFor(i);
+  /** Bates label for page i of the current document, counting earlier batch files. */
+  function batesFor(i, entryIndex) {
+    const r = store.state.settings.redaction;
+    if (r.bates === false) return null;
+    const off = pageOffset(entryIndex === undefined ? Math.max(S.cur, 0) : entryIndex);
+    return engine.batesLabel(r.batesPrefix, (r.batesStart || 1) + off + i, r.batesDigits || 6);
+  }
+
+  function pageRef(i, entryIndex) {
+    const b = batesFor(i, entryIndex);
     return b ? b + ' (p. ' + (i + 1) + ')' : 'p. ' + (i + 1);
+  }
+
+  async function confirmExportable(entries) {
+    const proposed = entries.reduce((a, e) => a + e.marks.filter((m) => m.status === 'proposed').length, 0);
+    if (proposed && !await confirmDialog(proposed + ' proposed mark(s) have not been reviewed. They will NOT be redacted. Export anyway?', 'Export anyway')) return false;
+    const missing = entries.reduce((a, e) => a +
+      e.marks.filter((m) => m.status === 'accepted' && !e.withheld.has(m.page) && (!m.citationId || !String(m.reason || '').trim())).length +
+      [...e.withheld.values()].filter((w) => !w.citationId || !String(w.reason || '').trim()).length, 0);
+    if (missing && !await confirmDialog(missing + ' redaction(s) have no stated reason. The reason goes in the redaction log and the denial letter, and the withholding body bears the burden of justifying each exemption. Export anyway?', 'Export anyway')) return false;
+    const any = entries.some((e) => e.marks.some((m) => m.status === 'accepted') || e.withheld.size);
+    if (!any && !await confirmDialog('No redactions are accepted. Export clean flattened copies anyway?', 'Export')) return false;
+    return true;
+  }
+
+  /** Renders and verifies one entry. Returns { bytes, report, outName, accepted, withheld, stamps }. */
+  async function exportEntry(entry, batesStart, label) {
+    const r = store.state.settings.redaction;
+    const accepted = entry.marks.filter((m) => m.status === 'accepted' && !entry.withheld.has(m.page));
+    const withheld = new Map([...entry.withheld].map(([p, w]) => [p, { cite: citeOf(w.citationId), reason: w.reason }]));
+    const { bytes, stamps } = await engine.exportRedacted(entry.doc,
+      accepted.map((m) => ({ page: m.page, rects: m.rects, citation: citeOf(m.citationId) })),
+      withheld,
+      {
+        dpi: r.dpi, format: r.format, labels: r.labels, color: r.color,
+        bates: r.bates === false ? null : { prefix: r.batesPrefix, start: batesStart, digits: r.batesDigits || 6 },
+        title: 'Redacted - ' + entry.doc.fileName.replace(/\.[^.]+$/, ''),
+      },
+      (i, n) => setBusy('Rendering ' + (label ? label + ' ' : '') + 'page ' + i + ' of ' + n + '...'));
+    setBusy('Verifying ' + (label || 'output') + '...');
+    const sensitive = entry.marks.filter((m) => m.status === 'accepted' && m.text).map((m) => m.text);
+    const report = await engine.verify(bytes, entry.doc.numPages, sensitive, stamps);
+    const outName = entry.doc.fileName.replace(/\.[^.]+$/, '') + '_REDACTED_' + deadlines.todayISO() + '.pdf';
+    return { bytes, report, outName, at: new Date().toISOString(), accepted, withheld: new Map(entry.withheld), stamps };
   }
 
   async function doExport() {
     if (!S.doc || S.busy) return;
-    const accepted = S.marks.filter((m) => m.status === 'accepted' && !S.withheld.has(m.page));
-    const proposed = S.marks.filter((m) => m.status === 'proposed');
-    if (proposed.length && !await confirmDialog(proposed.length + ' proposed mark(s) have not been reviewed. They will NOT be redacted. Export anyway?', 'Export anyway')) return;
-    const missing = accepted.filter((m) => !m.citationId || !String(m.reason || '').trim()).length +
-      [...S.withheld.values()].filter((w) => !w.citationId || !String(w.reason || '').trim()).length;
-    if (missing && !await confirmDialog(missing + ' redaction(s) have no stated reason. The reason goes in the redaction log and the denial letter, and the withholding body bears the burden of justifying each exemption. Export anyway?', 'Export anyway')) return;
-    if (!accepted.length && !S.withheld.size && !await confirmDialog('No redactions are accepted. Export a clean flattened copy anyway?', 'Export')) return;
-
+    if (!await confirmExportable([S])) return;
     const r = store.state.settings.redaction;
     setBusy('Rendering...');
     try {
-      const withheld = new Map([...S.withheld].map(([p, w]) => [p, { cite: citeOf(w.citationId), reason: w.reason }]));
-      const { bytes, stamps } = await engine.exportRedacted(S.doc,
-        accepted.map((m) => ({ page: m.page, rects: m.rects, citation: citeOf(m.citationId) })),
-        withheld,
-        {
-          dpi: r.dpi, format: r.format, labels: r.labels, color: r.color,
-          bates: r.bates === false ? null : { prefix: r.batesPrefix, start: r.batesStart || 1, digits: r.batesDigits || 6 },
-          title: 'Redacted - ' + S.doc.fileName.replace(/\.[^.]+$/, ''),
-        },
-        (i, n) => setBusy('Rendering page ' + i + ' of ' + n + '...'));
-      setBusy('Verifying output...');
-      const sensitive = S.marks.filter((m) => m.status === 'accepted' && m.text).map((m) => m.text);
-      const report = await engine.verify(bytes, S.doc.numPages, sensitive, stamps);
-      const outName = S.doc.fileName.replace(/\.[^.]+$/, '') + '_REDACTED_' + deadlines.todayISO() + '.pdf';
-      S.lastExport = { bytes, report, outName, at: new Date().toISOString(), accepted, withheld: new Map(S.withheld) };
+      const result = await exportEntry(S, (r.batesStart || 1) + pageOffset(Math.max(S.cur, 0)));
+      S.lastExport = result;
+      S.lastBatch = null;
       renderSidebar();
-      if (!report.pass) {
+      if (!result.report.pass) {
         toast('Verification failed. The file was not saved. See the report.', 'error');
         return;
       }
-      download(bytes, outName, 'application/pdf');
-      recordProduction(outName, report);
-      toast('Exported and verified: ' + outName, 'ok');
+      download(result.bytes, result.outName, 'application/pdf');
+      recordProduction([{ entry: S, index: Math.max(S.cur, 0), result, outName: result.outName, report: result.report }], result.outName, result.report.sha256);
+      toast('Exported and verified: ' + result.outName, 'ok');
     } catch (e) {
       console.error(e);
       toast('Export failed: ' + e.message, 'error');
@@ -522,37 +727,134 @@
     }
   }
 
-  function logRows() {
-    const rows = [];
-    const e = S.lastExport;
+  function productionBase() {
+    return (S.requestId || 'Production').replace(/[^A-Za-z0-9_-]+/g, '_') + '_PRODUCTION_' + deadlines.todayISO();
+  }
+
+  /** Redacts every file in the batch in one Bates sequence and downloads a zip plus the internal audit log. */
+  async function exportBatch() {
+    if (!S.docs.length || S.busy) return;
+    stash();
+    if (!await confirmExportable(S.docs)) return;
+    const r = store.state.settings.redaction;
+    setBusy('Rendering batch...');
+    try {
+      const files = [];
+      let running = r.batesStart || 1;
+      for (const [k, e] of S.docs.entries()) {
+        const result = await exportEntry(e, running, 'file ' + (k + 1) + '/' + S.docs.length);
+        e.lastExport = result;
+        files.push({ entry: e, index: k, result, outName: String(k + 1).padStart(2, '0') + '_' + result.outName, report: result.report, batesStart: running });
+        running += e.doc.numPages;
+      }
+      const pages = totalPages();
+      const batch = {
+        at: new Date().toISOString(), files, pages, pass: files.every((f) => f.report.pass),
+        batesFirst: batesFor(0, 0), batesLast: batesFor(S.docs[S.docs.length - 1].doc.numPages - 1, S.docs.length - 1),
+      };
+      S.lastBatch = batch;
+      restore(S.cur);
+      renderSidebar();
+      if (!batch.pass) {
+        toast('Verification failed on ' + files.filter((f) => !f.report.pass).length + ' file(s). Nothing was saved. See the report.', 'error');
+        return;
+      }
+      setBusy('Building production zip...');
+      const base = productionBase();
+      const logBytes = await engine.buildLogPdf(batchMeta(batch, base + '.zip'), batchLogRows(files).map((x) => ({ n: x.n, page: x.pageRef, scope: x.scope, cite: x.cite || '-', reason: x.reason || '-' })));
+      const entries = files.map((f) => ({ name: f.outName, data: f.result.bytes }));
+      entries.push({ name: 'REDACTION_LOG.pdf', data: logBytes });
+      entries.push({ name: 'MANIFEST.txt', data: manifestText(batch, files) });
+      if (S.mergeOutput) {
+        setBusy('Merging combined PDF...');
+        entries.push({ name: 'COMBINED_' + base + '.pdf', data: await engine.mergePdfs(files.map((f) => f.result.bytes), 'Redacted production ' + (S.requestId || '')) });
+      }
+      const zipBytes = zip.build(entries);
+      download(zipBytes, base + '.zip', 'application/zip');
+      download(csv(internalRows(files, batch)), base + '_INTERNAL_AUDIT_do_not_release.csv', 'text/csv');
+      recordProduction(files, base + '.zip', await engine.sha256Hex(zipBytes));
+      toast('Production exported and verified: ' + files.length + ' files, ' + pages + ' pages, ' + (batch.batesFirst ? batch.batesFirst + ' to ' + batch.batesLast : 'no Bates') + '.', 'ok');
+    } catch (e) {
+      console.error(e);
+      toast('Batch export failed: ' + e.message, 'error');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function batchMeta(batch, zipName) {
+    const p = store.state.settings.profile;
+    return [
+      ['Request', S.requestId || 'Not linked'],
+      ['Production', zipName + ' (' + batch.files.length + ' files, ' + batch.pages + ' pages)'],
+      ['Files', batch.files.map((f) => f.outName + ' = ' + f.entry.doc.fileName).join('; ')],
+      ['Bates range', batch.batesFirst ? batch.batesFirst + ' - ' + batch.batesLast : 'None'],
+      ['Prepared by', [p.signerName, p.signerTitle, p.orgName].filter(Boolean).join(', ') || '-'],
+      ['Date', deadlines.todayISO()],
+    ];
+  }
+
+  function manifestText(batch, files) {
+    const lines = ['RSA91A-Engine production', 'Request: ' + (S.requestId || 'not linked'), 'Date: ' + deadlines.todayISO(),
+      'Bates range: ' + (batch.batesFirst ? batch.batesFirst + ' - ' + batch.batesLast : 'none'), ''];
+    for (const f of files) {
+      const n = f.entry.doc.numPages;
+      lines.push(f.outName + '  ' + n + ' page(s)  ' + (batesFor(0, f.index) ? batesFor(0, f.index) + ' - ' + batesFor(n - 1, f.index) : '') + '  source SHA-256 ' + f.entry.doc.sha256 + '  output SHA-256 ' + f.report.sha256);
+    }
+    lines.push('', 'Every page is an image. Text under a redaction box does not exist in these files.');
+    return lines.join('\n');
+  }
+
+  /** Log rows for one or more exported files: [{ n, index, page, pageRef, scope, citationId, cite, reason, mark, file }]. */
+  function batchLogRows(files) {
     const items = [];
-    for (const m of e.accepted) items.push({ page: m.page, scope: 'Partial redaction', citationId: m.citationId, reason: m.reason, mark: m });
-    for (const [p, w] of e.withheld) items.push({ page: p, scope: 'Page withheld', citationId: w.citationId, reason: w.reason });
-    items.sort((a, b) => a.page - b.page);
-    items.forEach((it, k) => rows.push(Object.assign({ n: k + 1, pageRef: pageRef(it.page), cite: citeOf(it.citationId) }, it)));
+    for (const f of files) {
+      for (const m of f.result.accepted) items.push({ index: f.index, file: f.outName, page: m.page, scope: 'Partial redaction', citationId: m.citationId, reason: m.reason, mark: m });
+      for (const [p, w] of f.result.withheld) items.push({ index: f.index, file: f.outName, page: p, scope: 'Page withheld', citationId: w.citationId, reason: w.reason });
+    }
+    items.sort((a, b) => a.index - b.index || a.page - b.page);
+    return items.map((it, k) => Object.assign({ n: k + 1, pageRef: (files.length > 1 ? it.file + ', ' : '') + pageRef(it.page, it.index), cite: citeOf(it.citationId) }, it));
+  }
+
+  function logRows() {
+    return batchLogRows([{ entry: S, index: Math.max(S.cur, 0), result: S.lastExport, outName: S.lastExport.outName, report: S.lastExport.report }]);
+  }
+
+  function internalRows(files, batch) {
+    const rows = [['#', 'File', 'Page', 'Bates', 'Scope', 'Source', 'Detector', 'Covered text (INTERNAL - do not release)', 'Exemption', 'Reason', 'Exported at', 'Source file', 'Source SHA-256', 'Output file', 'Output SHA-256', 'Verification']];
+    for (const r of batchLogRows(files)) {
+      const f = files[r.index] || files.find((x) => x.index === r.index);
+      rows.push([r.n, r.file, r.page + 1, batesFor(r.page, r.index) || '', r.scope, r.mark ? r.mark.source : 'page', r.mark ? r.mark.label : '', r.mark ? r.mark.text : '',
+        r.cite, r.reason, batch ? batch.at : f.result.at, f.entry.doc.fileName, f.entry.doc.sha256, f.outName, f.report.sha256, f.report.pass ? 'PASS' : 'FAIL']);
+    }
     return rows;
   }
 
-  function recordProduction(outName, report) {
+  function recordProduction(files, outName, outputSha256) {
     if (!S.requestId) return;
     const req = store.getRequest(S.requestId);
     if (!req) return;
     const groups = new Map();
-    for (const r of logRows()) {
+    for (const r of batchLogRows(files)) {
       const key = r.citationId + '|' + (r.reason || '');
       if (!groups.has(key)) groups.set(key, { citationId: r.citationId, reason: r.reason, pages: [] });
       const g = groups.get(key);
-      const ref = batesFor(r.page) || String(r.page + 1);
+      const ref = batesFor(r.page, r.index) || (files.length > 1 ? r.file + ' p. ' : '') + String(r.page + 1);
       if (!g.pages.includes(ref)) g.pages.push(ref);
     }
+    const first = files[0]; const last = files[files.length - 1];
+    const pages = files.reduce((a, f) => a + f.entry.doc.numPages, 0);
     req.productions = req.productions || [];
     req.productions.push({
-      date: deadlines.todayISO(), file: outName, sourceFile: S.doc.fileName, sourceSha256: S.doc.sha256, outputSha256: report.sha256,
-      pages: S.doc.numPages, batesFirst: batesFor(0), batesLast: batesFor(S.doc.numPages - 1),
+      date: deadlines.todayISO(), file: outName, outputSha256, pages,
+      sourceFile: files.map((f) => f.entry.doc.fileName).join('; '),
+      sourceSha256: files.map((f) => f.entry.doc.sha256).join('; '),
+      files: files.map((f) => ({ name: f.outName, source: f.entry.doc.fileName, pages: f.entry.doc.numPages, sha256: f.report.sha256 })),
+      batesFirst: batesFor(0, first.index), batesLast: batesFor(last.entry.doc.numPages - 1, last.index),
       entries: [...groups.values()].map((g) => ({ citationId: g.citationId, reason: g.reason, pages: g.pages.join(', ') })),
     });
     req.history = req.history || [];
-    req.history.push({ at: new Date().toISOString(), event: 'Redacted production ' + outName });
+    req.history.push({ at: new Date().toISOString(), event: 'Redacted production ' + outName + ' (' + files.length + ' file' + (files.length === 1 ? '' : 's') + ', ' + pages + ' pages)' });
     store.upsertRequest(req);
   }
 
@@ -574,21 +876,23 @@
 
   function exportInternalLog() {
     const e = S.lastExport;
-    const rows = [['#', 'Page', 'Bates', 'Scope', 'Source', 'Detector', 'Covered text (INTERNAL - do not release)', 'Exemption', 'Reason', 'Reviewed at', 'Source file', 'Source SHA-256', 'Output file', 'Output SHA-256', 'Verification']];
-    for (const r of logRows()) {
-      rows.push([r.n, r.page + 1, batesFor(r.page) || '', r.scope, r.mark ? r.mark.source : 'page', r.mark ? r.mark.label : '', r.mark ? r.mark.text : '',
-        r.cite, r.reason, e.at, S.doc.fileName, S.doc.sha256, e.outName, e.report.sha256, e.report.pass ? 'PASS' : 'FAIL']);
-    }
-    download(csv(rows), e.outName.replace(/\.pdf$/, '_INTERNAL_AUDIT.csv'), 'text/csv');
+    const files = [{ entry: S, index: Math.max(S.cur, 0), result: e, outName: e.outName, report: e.report }];
+    download(csv(internalRows(files, null)), e.outName.replace(/\.pdf$/, '_INTERNAL_AUDIT.csv'), 'text/csv');
   }
 
+  // ---------- sessions ----------
+
   function saveSession() {
+    stash();
     const data = {
-      app: 'RSA91A-Engine', type: 'redaction-session', saved: new Date().toISOString(),
-      sourceFile: S.doc.fileName, sourceSha256: S.doc.sha256, requestId: S.requestId,
-      marks: S.marks, withheld: [...S.withheld], defaultCitation: S.defaultCitation, defaultReason: S.defaultReason,
+      app: 'RSA91A-Engine', type: 'redaction-session', version: 2, saved: new Date().toISOString(), requestId: S.requestId,
+      defaultCitation: S.defaultCitation, defaultReason: S.defaultReason, terms: S.terms, regex: S.regex,
+      docs: S.docs.map((e) => ({ sourceFile: e.doc.fileName, sourceSha256: e.doc.sha256, marks: e.marks, withheld: [...e.withheld] })),
+      // Fields kept for sessions saved by 1.x readers.
+      sourceFile: S.doc ? S.doc.fileName : '', sourceSha256: S.doc ? S.doc.sha256 : '', marks: S.marks, withheld: [...S.withheld],
     };
-    download(JSON.stringify(data, null, 2), S.doc.fileName.replace(/\.[^.]+$/, '') + '_session.json', 'application/json');
+    const base = S.docs.length > 1 ? productionBase() : (S.doc ? S.doc.fileName.replace(/\.[^.]+$/, '') : 'session');
+    download(JSON.stringify(data, null, 2), base + '_session.json', 'application/json');
   }
 
   async function loadSession() {
@@ -597,16 +901,34 @@
     try {
       const data = JSON.parse(await f.text());
       if (data.app !== 'RSA91A-Engine' || data.type !== 'redaction-session') throw new Error('Not a redaction session file.');
-      if (data.sourceSha256 !== S.doc.sha256 && !await confirmDialog('This session was saved for a different file (' + data.sourceFile + '). Marks may not line up. Load anyway?', 'Load anyway')) return;
-      S.marks = data.marks || [];
-      S.withheld = new Map(data.withheld || []);
-      S.requestId = data.requestId || '';
+      stash();
+      const saved = Array.isArray(data.docs) ? data.docs : [{ sourceFile: data.sourceFile, sourceSha256: data.sourceSha256, marks: data.marks || [], withheld: data.withheld || [] }];
+      let applied = 0;
+      const unmatched = [];
+      for (const d of saved) {
+        const e = S.docs.find((x) => x.doc.sha256 === d.sourceSha256);
+        if (!e) { unmatched.push(d.sourceFile); continue; }
+        e.marks = d.marks || [];
+        e.withheld = new Map(d.withheld || []);
+        e.nextId = e.marks.reduce((a, m) => Math.max(a, m.id), 0) + 1;
+        e.selected = null;
+        applied++;
+      }
+      if (!applied && saved.length === 1 && S.docs.length === 1 && await confirmDialog('This session was saved for a different file (' + saved[0].sourceFile + '). Marks may not line up. Load anyway?', 'Load anyway')) {
+        const e = S.docs[0];
+        e.marks = saved[0].marks || []; e.withheld = new Map(saved[0].withheld || []);
+        e.nextId = e.marks.reduce((a, m) => Math.max(a, m.id), 0) + 1; e.selected = null;
+        applied = 1;
+      }
+      S.requestId = data.requestId || S.requestId;
       S.defaultCitation = data.defaultCitation || S.defaultCitation;
       S.defaultReason = data.defaultReason || '';
-      S.nextId = S.marks.reduce((a, m) => Math.max(a, m.id), 0) + 1;
+      if (typeof data.terms === 'string') S.terms = data.terms;
+      if (typeof data.regex === 'string') S.regex = data.regex;
+      if (S.cur >= 0) restore(S.cur);
       renderSidebar();
       drawOverlay();
-      toast('Session loaded: ' + S.marks.length + ' marks.', 'ok');
+      toast('Session loaded for ' + applied + ' file(s).' + (unmatched.length ? ' Not open: ' + unmatched.join(', ') : ''), applied ? 'ok' : 'warn');
     } catch (e) {
       toast('Could not load session: ' + e.message, 'error');
     }
@@ -651,7 +973,7 @@
     viewer.addEventListener('drop', (e) => {
       e.preventDefault();
       viewer.classList.remove('drop');
-      if (e.dataTransfer.files[0]) open(e.dataTransfer.files[0]);
+      if (e.dataTransfer.files.length) open(Array.from(e.dataTransfer.files), { append: S.docs.length > 0 && e.shiftKey });
     });
     document.addEventListener('keydown', (e) => {
       if ($('#view-studio').hidden || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
@@ -664,5 +986,5 @@
     renderSidebar();
   }
 
-  NS.studio = { render, open, state: S, scan, doExport, runOcr };
+  NS.studio = { render, open, activate, state: S, scan, scanAll, doExport, exportBatch, runOcr, stash };
 })(typeof self !== 'undefined' ? self : this);
