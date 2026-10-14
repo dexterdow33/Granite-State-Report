@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dexter Dow — Books</title>
+  <meta name="description" content="Books by Dexter Dow, New Hampshire author and founder of Granite State Report. Nonfiction on power, politics, AI, and political economy.">
+  <link rel="canonical" href="https://dexterdow.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Dexter Dow — Books">
+  <meta property="og:description" content="Nonfiction on power, politics, AI, and political economy.">
+  <meta property="og:url" content="https://dexterdow.com/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23141414'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-size='34' font-weight='700' fill='%23c9a14a' text-anchor='middle'%3EDD%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --surface: #ffffff;
+      --ink: #161616;
+      --muted: #5c5a56;
+      --line: #dcd6cc;
+      --accent: #9c7a2e;
+      --accent-ink: #ffffff;
+      --maxw: 1080px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #121212;
+        --surface: #1b1b1b;
+        --ink: #eeeae3;
+        --muted: #a39f98;
+        --line: #2e2c29;
+        --accent: #c9a14a;
+        --accent-ink: #121212;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #121212; --surface: #1b1b1b; --ink: #eeeae3; --muted: #a39f98;
+      --line: #2e2c29; --accent: #c9a14a; --accent-ink: #121212;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font: 17px/1.65 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 16px; }
+    h1, h2, h3 { font-family: "Libre Baskerville", Georgia, serif; line-height: 1.2; margin: 0; }
+
+    header.site {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      backdrop-filter: blur(6px); border-bottom: 1px solid var(--line);
+    }
+    header.site .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+    .brand { font-family: "Libre Baskerville", Georgia, serif; font-weight: 700; font-size: 19px; text-decoration: none; letter-spacing: .01em; }
+    nav a { text-decoration: none; margin-left: 22px; font-size: 15px; color: var(--muted); }
+    nav a:hover { color: var(--ink); }
+
+    .hero { padding: 88px 0 72px; border-bottom: 1px solid var(--line); }
+    .eyebrow { text-transform: uppercase; letter-spacing: .14em; font-size: 12px; font-weight: 600; color: var(--accent); margin: 0 0 18px; }
+    .hero h1 { font-size: clamp(36px, 6vw, 64px); max-width: 16ch; }
+    .hero p.lede { font-size: clamp(18px, 2.2vw, 21px); color: var(--muted); max-width: 44ch; margin: 22px 0 32px; }
+    .btn {
+      display: inline-block; padding: 12px 22px; border-radius: 4px; font-weight: 600; font-size: 15px;
+      text-decoration: none; border: 1px solid var(--ink);
+    }
+    .btn.primary { background: var(--ink); color: var(--bg); }
+    .btn.primary:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+    .btn + .btn { margin-left: 10px; }
+
+    section { padding: 72px 0; }
+    section + section { border-top: 1px solid var(--line); }
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 36px; flex-wrap: wrap; }
+    .section-head h2 { font-size: clamp(26px, 3.4vw, 34px); }
+    .section-head a { font-size: 15px; color: var(--muted); }
+
+    .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: -12px 0 32px; }
+    .filters button {
+      font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; border-radius: 999px;
+      padding: 6px 14px; border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+    }
+    .filters button:hover { color: var(--ink); border-color: var(--ink); }
+    .filters button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+    .filters button:focus-visible, .buy:focus-visible, .cover:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .book .meta { font-size: 12.5px; color: var(--muted); margin: 0 0 8px; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 40px 28px; }
+    .book { display: flex; flex-direction: column; }
+    .cover {
+      aspect-ratio: 2 / 3; border-radius: 3px 6px 6px 3px; padding: 26px 20px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      color: #f3efe6; text-decoration: none; position: relative; overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,.2), 0 12px 28px -12px rgba(0,0,0,.45);
+      transition: transform .2s ease;
+    }
+    .cover::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: rgba(0,0,0,.22); }
+    .cover:hover { transform: translateY(-4px); }
+    .cover .rule { width: 36px; height: 2px; background: #c9a14a; }
+    .cover .t { font-family: "Libre Baskerville", Georgia, serif; font-weight: 700; font-size: 23px; line-height: 1.18; }
+    .cover .s { font-size: 12.5px; line-height: 1.4; opacity: .82; margin-top: 10px; }
+    .cover .a { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; opacity: .85; }
+    .book h3 { font-size: 18px; margin: 18px 0 4px; }
+    .book .sub { color: var(--muted); font-size: 14px; margin: 0 0 8px; }
+    .book p.blurb { font-size: 15px; margin: 0 0 14px; color: var(--ink); }
+    .book .buy { margin-top: auto; font-size: 14px; font-weight: 600; color: var(--accent); text-decoration: none; }
+    .book .buy:hover { text-decoration: underline; }
+
+    .about { display: grid; grid-template-columns: 1fr 1.4fr; gap: 48px; align-items: start; }
+    .about h2 { font-size: clamp(26px, 3.4vw, 34px); }
+    .about p { margin: 0 0 18px; max-width: 60ch; }
+    .topics { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding: 0; list-style: none; }
+    .topics li { border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-size: 13px; color: var(--muted); background: var(--surface); }
+
+    .gsr { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 36px; display: flex; gap: 28px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+    .gsr h2 { font-size: 26px; margin-bottom: 8px; }
+    .gsr p { margin: 0; color: var(--muted); max-width: 52ch; }
+
+    footer { border-top: 1px solid var(--line); padding: 32px 0 48px; font-size: 14px; color: var(--muted); }
+    footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    footer a { color: var(--muted); }
+    .theme-toggle { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 4px; padding: 4px 10px; font: inherit; cursor: pointer; }
+
+    @media (max-width: 720px) {
+      nav a { margin-left: 14px; }
+      nav a.hide-sm { display: none; }
+      .hero { padding: 56px 0 48px; }
+      section { padding: 52px 0; }
+      .about { grid-template-columns: 1fr; gap: 20px; }
+      .gsr { padding: 24px; }
+      .btn + .btn { margin-left: 0; margin-top: 10px; }
+      .hero .btn { display: block; text-align: center; }
+      .grid { grid-template-columns: repeat(2, 1fr); gap: 32px 16px; }
+      .cover { padding: 16px 12px; }
+      .cover .t { font-size: 16px; }
+      .cover .s { font-size: 11px; }
+      .cover .a { font-size: 9px; }
+      .book h3 { font-size: 15px; margin-top: 12px; }
+      .book p.blurb, .book .sub { font-size: 13.5px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="#top">Dexter Dow</a>
+      <nav>
+        <a href="#books">Books</a>
+        <a href="#about">About</a>
+        <a class="hide-sm" href="#gsr">Granite State Report</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <div class="hero">
+      <div class="wrap">
+        <p class="eyebrow">Author · Publisher · New Hampshire</p>
+        <h1>Books on how power works.</h1>
+        <p class="lede">Nonfiction on the systems most people live inside without seeing: politics, political economy, artificial intelligence, and the media. <span id="book-count"></span></p>
+        <a class="btn primary" href="#books">See the books</a>
+        <a class="btn ghost" id="store-link" href="#" target="_blank" rel="noopener">Amazon author page</a>
+      </div>
+    </div>
+
+    <section id="books">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Books</h2>
+          <a id="store-link-2" href="#" target="_blank" rel="noopener">Full catalog on Amazon →</a>
+        </div>
+        <div class="filters" id="filters" role="group" aria-label="Filter books by topic"></div>
+        <div class="grid" id="book-grid"></div>
+        <noscript><p>Turn on JavaScript to see the book list, or visit the <a href="https://www.amazon.com/stores/author/B0G961TFG9">Amazon author page</a>.</p></noscript>
+      </div>
+    </section>
+
+    <section id="about">
+      <div class="wrap about">
+        <h2>About</h2>
+        <div>
+          <p>Dexter Dow lives in New Hampshire and writes, publishes, and refuses to look away. The books take apart the systems most people live inside without seeing: surveillance economies, institutional decay, political capture.</p>
+          <p>The catalog spans artificial intelligence, political economy, media criticism, and geopolitics, treated as connected parts of one machine rather than separate subjects. Every title is independently published.</p>
+          <p>Dexter is the founder and editor of Granite State Report, an independent civic journalism outlet in New Hampshire.</p>
+          <ul class="topics">
+            <li>Political power</li><li>Artificial intelligence</li><li>Political economy</li><li>Media criticism</li><li>Geopolitics</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="gsr">
+      <div class="wrap">
+        <div class="gsr">
+          <div>
+            <p class="eyebrow">Journalism</p>
+            <h2>Granite State Report</h2>
+            <p>Documents-first reporting and analysis on New Hampshire government and politics.</p>
+          </div>
+          <a class="btn primary" href="https://granitestatereport.com" target="_blank" rel="noopener">Read GSR</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© <span id="year"></span> Dexter Dow. All rights reserved.</span>
+      <span>
+        <a href="https://granitestatereport.com" target="_blank" rel="noopener">granitestatereport.com</a>
+        &nbsp;·&nbsp;
+        <button class="theme-toggle" id="theme-toggle" type="button">Theme</button>
+      </span>
+    </div>
+  </footer>
+
+  <script src="books.js"></script>
+  <script>
+    (function () {
+      var store = window.AUTHOR_STORE || "https://www.amazon.com/stores/author/B0G961TFG9";
+      document.getElementById("store-link").href = store;
+      document.getElementById("store-link-2").href = store;
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      // Cover palette: deep, print-like tones. Picked per title so each book keeps its color.
+      var palette = ["#1f2a36", "#3a1f1f", "#1f3329", "#2d2438", "#3b2f1c", "#16303a", "#3a2230", "#252525"];
+      function colorFor(s) {
+        var h = 0;
+        for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+        return palette[h % palette.length];
+      }
+      function el(tag, cls, text) {
+        var n = document.createElement(tag);
+        if (cls) n.className = cls;
+        if (text) n.textContent = text;
+        return n;
+      }
+
+      var grid = document.getElementById("book-grid");
+      var filters = document.getElementById("filters");
+      var books = (window.BOOKS || []).filter(function (b) { return b.live; });
+      var countEl = document.getElementById("book-count");
+      if (countEl) countEl.textContent = books.length + " titles, all independently published.";
+
+      function buyUrl(b) {
+        if (b.asin) return "https://www.amazon.com/dp/" + encodeURIComponent(b.asin);
+        if (b.isbn) return "https://www.amazon.com/s?k=" + encodeURIComponent(b.isbn);
+        return store;
+      }
+
+      function render(topic) {
+        grid.textContent = "";
+        books.filter(function (b) { return !topic || b.topic === topic; }).forEach(function (b) {
+          var url = buyUrl(b);
+          var card = el("article", "book");
+
+          var cover = el("a", "cover");
+          cover.href = url; cover.target = "_blank"; cover.rel = "noopener";
+          cover.style.background = "linear-gradient(160deg, " + colorFor(b.title) + ", #0d0d0d)";
+          cover.setAttribute("aria-label", b.title + " on Amazon");
+          var top = el("div");
+          top.appendChild(el("div", "rule"));
+          var t = el("div", "t", b.title); t.style.marginTop = "18px";
+          top.appendChild(t);
+          if (b.subtitle) top.appendChild(el("div", "s", b.subtitle));
+          cover.appendChild(top);
+          cover.appendChild(el("div", "a", "Dexter Dow"));
+          card.appendChild(cover);
+
+          card.appendChild(el("h3", null, b.title));
+          if (b.subtitle) card.appendChild(el("p", "sub", b.subtitle));
+          card.appendChild(el("p", "meta", [b.year, b.topic].filter(Boolean).join(" · ")));
+          if (b.blurb) card.appendChild(el("p", "blurb", b.blurb));
+          var buy = el("a", "buy", "Buy on Amazon →");
+          buy.href = url; buy.target = "_blank"; buy.rel = "noopener";
+          card.appendChild(buy);
+          grid.appendChild(card);
+        });
+      }
+
+      var topics = (window.TOPICS || []).filter(function (t) {
+        return books.some(function (b) { return b.topic === t; });
+      });
+      var current = "";
+      function setFilter(topic) {
+        current = topic;
+        Array.prototype.forEach.call(filters.children, function (btn) {
+          btn.setAttribute("aria-pressed", btn.dataset.topic === topic ? "true" : "false");
+        });
+        render(topic);
+      }
+      [""].concat(topics).forEach(function (t) {
+        var n = books.filter(function (b) { return !t || b.topic === t; }).length;
+        var btn = el("button", null, (t || "All") + " (" + n + ")");
+        btn.type = "button"; btn.dataset.topic = t;
+        btn.addEventListener("click", function () { setFilter(t); });
+        filters.appendChild(btn);
+      });
+      setFilter("");
+
+      var root = document.documentElement;
+      try { var saved = localStorage.getItem("theme"); if (saved) root.setAttribute("data-theme", saved); } catch (e) {}
+      document.getElementById("theme-toggle").addEventListener("click", function () {
+        var dark = root.getAttribute("data-theme") === "dark" ||
+          (!root.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var next = dark ? "light" : "dark";
+        root.setAttribute("data-theme", next);
+        try { localStorage.setItem("theme", next); } catch (e) {}
+      });
+    })();
+  </script>
+</body>
+</html>
