@@ -113,7 +113,4 @@ window.BOOKS = [
   { title: "Malice Not Required", subtitle: "How America Criminalized Its Own People and Called It Justice", topic: "America & Empire", year: 2026, isbn: "", asin: "",
     blurb: "", live: false,
     verify: "Copyright page still has placeholder ISBNs (979-8-XXX). Looks unpublished. Add the ISBN and set live: true when it’s on KDP." },
-  { title: "The God That Forgot Us", subtitle: "Book One", topic: "Mind & Psychology", year: 2026, isbn: "9798249068905", asin: "",
-    blurb: "", live: false,
-    verify: "Fiction, credited to ‘A.I. Rowan’ on the title and copyright pages, not Dexter Dow. Held until you say whether it belongs on this site." },
 ];
