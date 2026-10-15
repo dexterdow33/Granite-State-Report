@@ -8,6 +8,8 @@
   function renderSettings() {
     const host = $('#view-settings');
     clear(host);
+    NS.filestore.usage().then((u) => { const el = $('#shelf-usage'); if (el) el.textContent = 'Shelf storage: ' + u.files + ' file(s), ' + (u.bytes / 1048576).toFixed(1) + ' MB in this browser.'; })
+      .catch((e) => { const el = $('#shelf-usage'); if (el) el.textContent = 'Shelf storage unavailable here: ' + e.message; });
     const s = store.state.settings;
     const p = s.profile;
     const text = (label, key, obj, type) => h('label', {}, h('span', {}, label),
@@ -52,6 +54,8 @@
       h('section', { class: 'panel' },
         h('h3', {}, 'Data and backup'),
         h('p', {}, 'All data stays in this browser on this computer. Nothing is sent anywhere.'),
+        h('p', { class: 'help' }, 'The backup file holds requests, settings and each shelf file\'s marks and sign-off summary. The shelf files themselves (the PDFs) live in this browser\'s database and are not in the backup; keep your own copies of originals.'),
+        h('p', { class: 'help', id: 'shelf-usage' }, 'Shelf storage: checking...'),
         !store.storageOk ? h('p', { class: 'alert bad' }, 'Browser storage is unavailable here (private window or blocked site data). Your work will be lost when you close this tab unless you download a backup.') : null,
         h('p', { class: 'help' }, 'Last backup: ' + (store.state.lastBackup ? store.state.lastBackup.replace('T', ' ').slice(0, 16) : 'never')),
         h('div', { class: 'row wrap' },
@@ -110,6 +114,8 @@
       sec('Workflow',
         h('ol', {},
           h('li', {}, 'Log the request under Requests. The tracker shows the 5-business-day window under RSA 91-A:4, IV(b).'),
+          h('li', {}, 'Open every file for the request in the Redaction Studio at once. With a request linked, the files go on its shelf and stay there, with their marks, between sessions. Each file keeps its own marks; one export numbers them all in one Bates sequence.'),
+          h('li', {}, 'Sign off each file by name once every mark has a decision. Export refuses files without a current sign-off, and the name and time go in the redaction log.'),
           h('li', {}, 'If the records are not ready, draft an Acknowledgment with a time estimate and log it as sent.'),
           h('li', {}, 'Open each record in the Redaction Studio, linked to the request. Scan, review every proposed mark, add boxes by hand, pick the exemption and state the reason.'),
           h('li', {}, 'Export. The engine rebuilds the file and verifies it. Only a passing file is saved.'),
@@ -119,9 +125,15 @@
         'Each page is rendered to an image, the accepted boxes are painted into the image, and a new PDF is built from the images alone. The words under a box are not hidden; they are gone. Fonts, hidden text, form fields, comments, attachments, scripts, bookmarks, layers, and metadata from the original do not carry over.',
         'After export the engine opens its own output and checks: page count, no text beyond Bates stamps, none of the redacted strings, no annotations, no attachments, no scripts, no bookmarks, and no author or XMP metadata. If any check fails, the file is not saved.',
         'Trade-off: the output is not text-searchable, and files are larger than the original. 200 dpi JPEG is a good default; use 300 dpi PNG for fine print or exhibits.'),
+      sec('OCR for scanned pages',
+        'A scan is a picture. The scanner cannot read it until OCR turns the picture into text. The Studio offers OCR whenever a page has no text layer; the engine runs on your computer, in the browser, and sends nothing anywhere. On OCR pages the scanner also accepts near matches of your terms, because OCR often misreads a character or two, and every mark from an OCR page is labeled "OCR:".',
+        'The OCR text is used only to find and place redactions. It is never written into the output file. OCR runs in the background, so you can keep reviewing while pages are read.'),
+      sec('Batch productions',
+        'A request usually covers several records. Open them together (pick several files, or add files to an open batch). "Scan all files" runs OCR where needed and the detectors on every file with the same terms and settings. "Next to review" moves through the files in order. Switch files from the list in the sidebar; each keeps its own marks and withheld pages.',
+        'Export production writes one Bates sequence across the files in the order listed, then downloads a zip holding one redacted PDF per file, a single redaction log, a manifest with SHA-256 hashes, and, if you ask, one combined PDF. The internal audit log, which contains the covered text, downloads as a separate file: keep it, never send it.'),
       sec('Limits you need to know',
         h('ul', {},
-          h('li', {}, 'Automatic detection reads the PDF text layer. Scanned pages have none; the Studio lists them. Review those pages by eye and draw boxes.'),
+          h('li', {}, 'Automatic detection reads the PDF text layer. Scanned pages have none; the Studio lists them and offers OCR. OCR misses and misreads words, so review those pages by eye as well. Only English is included.'),
           h('li', {}, 'Detectors miss things and flag things that are not sensitive. They are a first pass for a human reviewer, never a substitute.'),
           h('li', {}, 'Password-protected PDFs must be unlocked in the program that created them before opening.'),
           h('li', {}, 'Data lives in this browser. Download a backup regularly (Settings).'))),

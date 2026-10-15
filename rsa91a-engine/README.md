@@ -36,7 +36,11 @@ Sold by Ninth State Software (NinthStateSoftware.com).
   - metadata
 
   A file that fails any check is not saved.
-- Warns when a page has no text layer (a likely scan) so the reviewer checks it by eye.
+- **Offline OCR for scans.** Pages with no text layer (scans, photos, faxes) can be read with a built-in OCR engine (Tesseract, WebAssembly, English model included). The scanner then runs on the OCR text, and on those pages it also accepts near matches of your terms, because OCR misreads characters. Marks from OCR pages are labeled so reviewers look harder. The engine loads on first use, about 12 MB from the app's own files; nothing is downloaded. It runs in a web worker, so the screen stays responsive while pages are read.
+- **Request shelf.** Files opened while a request is linked are kept on that request's shelf, in the browser's own database, with their marks, withheld pages and sign-off. Close the app, come back next week, click "Open files" on the request, and everything is where you left it. Files can be removed from the shelf; deleting a request clears its shelf.
+- **Sign-off.** Each file must be signed off by name before it can be exported, and only once every mark has a decision. The sign-off records who, when, an optional note, and a fingerprint of the marks; if any mark changes afterward the sign-off goes stale and must be redone. Reviewer names appear in the redaction log, the manifest, the audit CSV and the production record.
+- **Batch productions.** Open several files at once (or add files to an open batch). Each file keeps its own marks; "Scan all files" OCRs and scans every file with the same settings; "Next to review" walks through every file. One export redacts every file in one Bates sequence and downloads a production zip: one redacted PDF per file, a combined redaction log, a manifest with hashes, and optionally one merged PDF. The internal audit log downloads separately so it cannot be sent by mistake. The production is recorded on the linked request and feeds the production and denial letters.
+- Warns when a page has no text layer and offers OCR; those pages still deserve a review by eye.
 - **Public redaction log (PDF).** A Vaughn-style index listing each redaction's page or Bates number, scope, exemption and reason. It never reproduces the withheld content.
 - **Internal audit log (CSV).** Includes the covered text, the detector used, and SHA-256 hashes of the source and output files for chain of custody.
 - Save and reload a review session.
@@ -73,11 +77,13 @@ RSA 91-A:4, IV(b) says "within 5 business days" and does not define how to count
 
 ## Development
 
+The browser tests include an OCR run: a page is rasterized to an image, OCR'd, redacted and exported, then the output is OCR'd to show the identifiers are unreadable.
+
 ```
 npm install          # dev dependencies only (pdf.js, pdf-lib, Playwright for tests)
 npm run vendor       # copy browser builds into js/vendor (already committed)
 npm test             # unit tests: deadlines, detectors, text geometry, letters
-npm run test:e2e     # headless Chromium: scan, redact, export, independent leak check
+npm run test:e2e     # headless Chromium: scan, redact, export, leak check, UI, OCR, batch, shelf
 npm run build        # dist/RSA91A-Engine-<version>.zip for sale/download
 ```
 
@@ -92,18 +98,26 @@ js/core/              pure logic, also loaded by Node tests
   citations.js        citation library with sources
   letters.js          letter templates
   textmap.js          maps text matches to page rectangles
+  zip.js              ZIP writer for production bundles
 js/app/               browser UI
-  redaction-engine.js rasterize, burn in, rebuild, verify, log PDF
-  studio.js           Redaction Studio
+  ocr.js              offline OCR (Tesseract WebAssembly in a self-contained worker)
+  redaction-engine.js rasterize, burn in, rebuild, verify, log PDF, OCR text layer
+  studio.js           Redaction Studio (batch, shelf, sign-off)
+  filestore.js        IndexedDB wrapper for shelf files and review state
+  shelf.js            request shelf: add, list, remove, load, save review, sign-off fingerprint
   tracker.js          request tracker
   letters-ui.js       letter drafting
   settings-ui.js      settings, citations, guide
-js/vendor/            pdf.js 3.11.174 (Apache-2.0), pdf-lib 1.17.1 (MIT)
+js/vendor/            pdf.js 3.11.174 (Apache-2.0), pdf-lib 1.17.1 (MIT),
+                      Tesseract core 6.1.2 and eng.traineddata (Apache-2.0) and
+                      zlib.js gunzip (MIT), each vendored as a JavaScript string so
+                      the OCR worker can be built from a Blob under file://;
+                      wasm-feature-detect (Apache-2.0)
 ```
 
 ## Known limits
 
 - The redacted output is not text-searchable, because every page is an image. That is the price of guaranteed removal. OCR is not included.
-- Automatic detection needs a text layer. Scanned pages must be reviewed by eye.
-- Data is stored in the browser's local storage. Users should download backups; the app reminds them weekly.
+- OCR is imperfect. It misses and misreads words, especially on poor scans, handwriting and small print. Treat its marks as a first pass and review OCR pages by eye. Only English is included.
+- Requests and settings are stored in the browser's local storage; shelf files and their review state in the browser's IndexedDB. The JSON backup covers requests, settings and the shelf summary, not the shelf files themselves. Users should download backups and keep their own originals; the app reminds them weekly. Private windows and blocked site data make the shelf unavailable; the app says so.
 - Password-protected PDFs must be unlocked before opening.

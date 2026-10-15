@@ -96,10 +96,11 @@ async function main() {
   assert.ok(scanned.some((m) => m.page === 2), 'rotated page 3 missed');
   assert.ok(scanned.some((m) => m.type === 'annotation' && m.text === 'HIDDEN-FIELD-VALUE'), 'form field value missed');
 
-  // Reviewer accepts everything and withholds nothing; screenshot the review state.
-  await page.evaluate(() => {
+  // Reviewer accepts everything, withholds nothing, signs off; screenshot the review state.
+  await page.evaluate(async () => {
     const S = window.RSA91A.studio.state;
     for (const m of S.marks) m.status = 'accepted';
+    if (!await window.RSA91A.studio.signOff('Test Reviewer', 'e2e')) throw new Error('sign-off refused');
   });
   await page.evaluate(() => window.RSA91A.studio.render());
   await page.waitForTimeout(300);

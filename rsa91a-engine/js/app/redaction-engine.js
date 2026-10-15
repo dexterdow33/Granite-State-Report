@@ -127,6 +127,72 @@
       return t.text.replace(/\s+/g, '').length > 0;
     }
 
+    /** Pages (0-based) with no text layer and no OCR text yet. */
+    async textlessPages() {
+      const out = [];
+      for (let i = 0; i < this.numPages; i++) if (!await this.hasText(i)) out.push(i);
+      return out;
+    }
+
+    /**
+     * Runs OCR on page i and installs the result as that page's text layer,
+     * shaped like pdf.js text items so detection, geometry and textUnder work
+     * unchanged. dpi controls the render resolution fed to the engine.
+     * Returns { words, meanConf }.
+     */
+    async ocrPage(i, dpi, onStatus) {
+      const scale = (dpi || 300) / 72;
+      const canvas = document.createElement('canvas');
+      const viewport = await this.render(i, canvas, scale);
+      const result = await NS.ocr.recognize(canvas, dpi || 300, onStatus);
+      canvas.width = 0; canvas.height = 0;
+
+      // Group words by OCR line, in reading order, and turn each word into an
+      // item positioned in PDF user space. A trailing space is folded into the
+      // word (with width reaching the next word) so joins are explicit.
+      const lines = new Map();
+      for (const w of result.words) {
+        if (!lines.has(w.line)) lines.set(w.line, []);
+        lines.get(w.line).push(w);
+      }
+      const items = [];
+      for (const ws of lines.values()) {
+        ws.sort((a, b) => a.x0 - b.x0);
+        for (let k = 0; k < ws.length; k++) {
+          const w = ws[k];
+          const last = k === ws.length - 1;
+          const [px0, py1] = viewport.convertToPdfPoint(w.x0, w.y1); // bottom-left
+          const [px1, py0] = viewport.convertToPdfPoint(w.x1, w.y0); // top-right
+          const size = Math.abs(py0 - py1) || 8;
+          let width = Math.abs(px1 - px0);
+          let str = w.text;
+          if (!last) {
+            const [nx0] = viewport.convertToPdfPoint(ws[k + 1].x0, ws[k + 1].y0);
+            width = Math.max(width, Math.abs(nx0 - px0));
+            str += ' ';
+          }
+          // Text sits on a baseline; the box bottom is close enough for
+          // redaction geometry, which pads every side anyway.
+          const baseline = Math.min(py0, py1) + size * 0.2;
+          items.push({
+            str, transform: [size, 0, 0, size, Math.min(px0, px1), baseline], width, height: size,
+            hasEOL: last, fontName: 'ocr', conf: w.conf,
+          });
+        }
+      }
+      const { text, segments } = textmap.buildPageText(items);
+      const measure = (s) => s.length; // monospace estimate; OCR boxes are per word anyway
+      this.textCache.set(i, { items, text, segments, measure, ocr: true, meanConf: result.meanConf });
+      this.ocrPages = this.ocrPages || new Set();
+      this.ocrPages.add(i);
+      return result;
+    }
+
+    /** True when page i's text came from OCR rather than the file. */
+    isOcr(i) {
+      return !!(this.ocrPages && this.ocrPages.has(i));
+    }
+
     /**
      * Finds sensitive data. opts: { detectorIds, terms, regexes: [{source, flags}] }
      * Returns proposed marks: { page, rects, text, type, label }.
@@ -137,11 +203,13 @@
         const t = await this.pageText(i);
         let matches = detectors.scan(t.text, opts.detectorIds);
         matches = matches.concat(detectors.scanTerms(t.text, opts.terms));
+        // OCR misreads characters; on OCR pages also accept near matches of each term.
+        if (t.ocr) matches = matches.concat(detectors.scanTermsFuzzy(t.text, opts.terms));
         for (const r of opts.regexes || []) matches = matches.concat(detectors.scanRegex(t.text, r.source, r.flags));
         matches = detectors.mergeOverlaps(matches);
         for (const m of matches) {
           const rects = textmap.rangeToRects(t.items, t.segments, m.start, m.end, t.measure);
-          if (rects.length) out.push({ page: i, rects, text: t.text.slice(m.start, m.end), type: m.type, label: m.label });
+          if (rects.length) out.push({ page: i, rects, text: t.text.slice(m.start, m.end), type: m.type, label: (t.ocr ? 'OCR: ' : '') + m.label, ocr: !!t.ocr });
         }
         // Form-field values and comment text print on the page but are not part of
         // the text layer. Scan them too and propose covering the whole field/note.
@@ -475,5 +543,22 @@
     return doc.save();
   }
 
-  NS.engine = { SourceDocument, exportRedacted, verify, buildLogPdf, sha256Hex, batesLabel, toViewportRect, normRect, ascii, wrapText };
+  /** Concatenates several PDFs (as bytes) into one, in order. Used for a combined batch output. */
+  async function mergePdfs(list, title) {
+    const { PDFDocument } = root.PDFLib;
+    const out = await PDFDocument.create();
+    for (const bytes of list) {
+      const src = await PDFDocument.load(bytes, { ignoreEncryption: true });
+      const pages = await out.copyPages(src, src.getPageIndices());
+      for (const p of pages) out.addPage(p);
+    }
+    out.setTitle(ascii(title || 'Redacted production'));
+    out.setAuthor(''); out.setSubject(''); out.setKeywords([]);
+    out.setProducer('RSA91A-Engine'); out.setCreator('RSA91A-Engine');
+    const now = new Date();
+    out.setCreationDate(now); out.setModificationDate(now);
+    return out.save({ useObjectStreams: true });
+  }
+
+  NS.engine = { SourceDocument, exportRedacted, verify, buildLogPdf, mergePdfs, sha256Hex, batesLabel, toViewportRect, normRect, ascii, wrapText };
 })(typeof self !== 'undefined' ? self : this);
