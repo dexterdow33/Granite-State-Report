@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ninth State Software</title>
+<meta name="description" content="Apps built with AI and checked by a person before they're sold. From New Hampshire, the ninth state.">
+<meta name="theme-color" content="#0c1613">
+<meta property="og:title" content="Ninth State Software">
+<meta property="og:description" content="Apps built with AI and checked by a person before they're sold.">
+<meta property="og:url" content="https://ninthstatesoftware.com/">
+<meta property="og:type" content="website">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Ninth State Software, home">
+      <span class="brand-mark" aria-hidden="true">IX</span>
+      <span class="brand-name">Ninth State Software</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#apps">Apps</a>
+      <a href="#how">How it's built</a>
+      <a href="#custom">Custom work</a>
+      <a href="#faq">FAQ</a>
+      <a class="nav-cta" href="#contact">Get notified</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <canvas class="hero-ridges" id="ridges" aria-hidden="true"></canvas>
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="label">Software store · New Hampshire</span>
+        <h1>
+          <span class="line">Apps built</span>
+          <span class="line">with AI.</span>
+          <span class="line foliage-text">Checked by a person.</span>
+        </h1>
+        <p class="hero-lede">Small, focused software that does one job well. <strong>AI writes the first draft of the code. A person tests every release</strong> before it goes on sale.</p>
+        <div class="hero-actions">
+          <a class="btn" href="#apps">See the apps <span class="arrow" aria-hidden="true">→</span></a>
+          <a class="btn btn-ghost" href="#custom">Need something built?</a>
+        </div>
+      </div>
+
+      <div class="seal" role="img" aria-label="New Hampshire, ninth state to ratify the Constitution, June 21, 1788">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <defs>
+            <path id="ring" d="M100,100 m-86,0 a86,86 0 1,1 172,0 a86,86 0 1,1 -172,0"></path>
+          </defs>
+          <circle cx="100" cy="100" r="97" fill="none" stroke="var(--line)" stroke-width="1"></circle>
+          <circle cx="100" cy="100" r="76" fill="none" stroke="var(--line)" stroke-width="1" stroke-dasharray="2 4"></circle>
+          <g class="seal-ring">
+            <text><textPath href="#ring">NEW HAMPSHIRE ✦ NINTH TO RATIFY ✦ 21 JUNE 1788 ✦ </textPath></text>
+          </g>
+        </svg>
+        <div class="seal-core">
+          <span class="seal-num foliage-text">IX</span>
+          <span class="seal-sub">The ninth state</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      <span>Write the spec</span><span>Build with AI</span><span>Test by hand</span><span>Ship with a version number</span><span>Fix what you report</span>
+      <span>Write the spec</span><span>Build with AI</span><span>Test by hand</span><span>Ship with a version number</span><span>Fix what you report</span>
+    </div>
+  </div>
+
+  <section id="apps">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="label">The catalog</span>
+        <h2>Apps for sale</h2>
+        <p>Each listing says what the app does, what it runs on, and what it costs. Checkout is handled by the payment processor, so your card number never touches this site.</p>
+      </div>
+      <div class="catalog" id="catalog">
+        <noscript><p>Turn on JavaScript to see the catalog.</p></noscript>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="process">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="label">How an app gets built</span>
+        <h2>Four steps. Every app. No shortcuts.</h2>
+        <p>The AI is a tool in the shop. A person decides what gets built and signs off on what leaves.</p>
+      </div>
+      <ol class="steps">
+        <li>
+          <h3>Spec</h3>
+          <p>Start with a real problem and write down exactly what the app must do. No spec, no build.</p>
+        </li>
+        <li>
+          <h3>Build with AI</h3>
+          <p>AI coding tools write the code against that spec. A person directs the work and reads the result.</p>
+        </li>
+        <li>
+          <span class="step-note">The step that matters</span>
+          <h3>Test by hand</h3>
+          <p>Every feature gets run by a person on the platforms it's sold for. Anything that fails goes back to step two.</p>
+        </li>
+        <li>
+          <h3>Ship and fix</h3>
+          <p>It goes on sale with a version number. Bugs you report go on the list for the next release.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="custom">
+    <div class="wrap split">
+      <div class="panel panel-hot">
+        <span class="label">Custom work</span>
+        <h2>Need a tool that doesn't exist yet?</h2>
+        <p>Small businesses, newsrooms, nonprofits, and town offices run on spreadsheets and workarounds. If you can describe the job, it can probably be built. Send a short note on what you need, who will use it, and your deadline.</p>
+        <div><a class="btn" href="#contact">Start a conversation <span class="arrow" aria-hidden="true">→</span></a></div>
+      </div>
+      <div class="panel">
+        <span class="label">Why "Ninth State"</span>
+        <h2>Nine made it law.</h2>
+        <div class="states" role="img" aria-label="Thirteen states; New Hampshire was the ninth to ratify">
+          <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span class="nh">NH</span><span class="after">10</span><span class="after">11</span><span class="after">12</span><span class="after">13</span>
+        </div>
+        <div class="states-caption"><span>Order of ratification</span><b>9 of 13 needed</b></div>
+        <p>New Hampshire's vote on June 21, 1788 made it the ninth state to ratify the U.S. Constitution. Nine was the number needed for the Constitution to take effect. The software here is built in that state.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap faq-wrap">
+      <div class="section-head">
+        <span class="label">Questions</span>
+        <h2>Before you buy</h2>
+        <p>Straight answers. If yours isn't here, ask.</p>
+      </div>
+      <div class="faq">
+        <details open>
+          <summary>What does "built with AI" mean here?</summary>
+          <p>AI coding tools write most of the code. A person writes the spec, directs the build, reviews the code, and tests the finished app before it's listed. The AI is a tool in the shop, and a person signs off on what leaves it.</p>
+        </details>
+        <details>
+          <summary>How do I pay?</summary>
+          <p>Each listing has a Buy button that opens a hosted checkout page run by the payment processor. Your card details go to them, not to this site.</p>
+        </details>
+        <details>
+          <summary>What if an app doesn't work for me?</summary>
+          <p>Get in touch with what went wrong and what you were running it on. Refund terms are shown at checkout for each app.</p>
+        </details>
+        <details>
+          <summary>Do you store my data?</summary>
+          <p>This website doesn't use tracking cookies or ad trackers. What each app does with data is listed on that app's page.</p>
+        </details>
+        <details>
+          <summary>Can you build something for my organization?</summary>
+          <p>Yes. Describe the job, the people who'll use it, and your timeline. You'll get a plain answer on whether it's a fit and what it would cost.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="contact">
+    <div class="wrap">
+      <div class="contact-card">
+        <span class="label">Stay in the loop</span>
+        <h2>Hear when a new app ships</h2>
+        <p>One email per release. No other mail.</p>
+        <form class="notify" id="notify-form" novalidate>
+          <label for="notify-email">Email address</label>
+          <input id="notify-email" name="email" type="email" autocomplete="email" placeholder="name@example.com" required>
+          <button class="btn" type="submit">Notify me</button>
+        </form>
+        <p class="notify-status" id="notify-status" role="status" aria-live="polite"></p>
+        <p class="email-line" id="email-line"></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <span>© <span id="year">2026</span> Ninth State Software · Built in New Hampshire</span>
+    <a href="#top">Back to top ↑</a>
+  </div>
+</footer>
+
+<script src="site.js"></script>
+</body>
+</html>
