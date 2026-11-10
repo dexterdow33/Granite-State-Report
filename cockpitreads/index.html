@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cockpit Reads by Dexter Dow</title>
+<meta name="description" content="Cockpit Reads is a YouTube channel by Dexter Dow: scenic Microsoft Flight Simulator 2024 flights on PS5 with readings from his books and plain-spoken commentary on history, foreign policy, and the news.">
+<link rel="canonical" href="https://cockpitreads.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cockpit Reads by Dexter Dow">
+<meta property="og:description" content="Fly the route. Read the story. Books, history, foreign policy, and the news, from the cockpit in Microsoft Flight Simulator 2024.">
+<meta property="og:url" content="https://cockpitreads.com/">
+<meta name="twitter:card" content="summary">
+<meta name="theme-color" content="#0b0f14">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%230b0f14' stroke='%23f2a900' stroke-width='4'/%3E%3Cpath d='M2 34h60v28H2z' fill='%23704214' clip-path='circle(28px at 32px 32px)'/%3E%3Cpath d='M14 33h12l6 5 6-5h12' fill='none' stroke='%23f2a900' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0f14;
+  --panel: #121922;
+  --panel-2: #18212c;
+  --line: #243140;
+  --text: #e7edf3;
+  --muted: #93a3b5;
+  --amber: #f2a900;
+  --green: #3ddc84;
+  --cyan: #4cc9f0;
+  --sky: #2f6fa8;
+  --ground: #7a4a1c;
+  --radius: 14px;
+  --max: 1120px;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 17px/1.6 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+img, svg, iframe { max-width: 100%; display: block; }
+a { color: var(--amber); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; border-radius: 6px; }
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 16px; }
+.mono { font-family: var(--mono); letter-spacing: .04em; }
+.eyebrow {
+  font: 600 13px/1 var(--mono);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin: 0 0 14px;
+}
+h1, h2, h3 { font-family: var(--display); font-weight: 700; line-height: 1.02; margin: 0; letter-spacing: .01em; }
+h2 { font-size: clamp(34px, 5vw, 52px); text-transform: uppercase; }
+h3 { font-size: 26px; text-transform: uppercase; }
+p { margin: 0 0 1em; }
+.lede { color: var(--muted); font-size: 19px; max-width: 60ch; }
+
+/* Nav */
+.nav {
+  position: sticky; top: 0; z-index: 10;
+  background: rgba(11, 15, 20, .86);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
+.brand svg { width: 30px; height: 30px; flex-shrink: 0; }
+.brand b { white-space: nowrap; font: 700 24px/1 var(--display); text-transform: uppercase; letter-spacing: .03em; }
+.brand b span { color: var(--amber); }
+.nav ul { display: flex; gap: 26px; list-style: none; margin: 0; padding: 0; }
+.nav ul a { color: var(--muted); text-decoration: none; font-size: 15px; font-weight: 500; }
+.nav ul a:hover { color: var(--text); }
+@media (max-width: 760px) { .nav ul { display: none; } }
+@media (max-width: 420px) { .brand b { font-size: 21px; } .nav .btn-sm { padding: 9px 14px; } }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 13px 22px; border-radius: 999px;
+  font: 600 15px/1 var(--body); text-decoration: none;
+  border: 1px solid transparent; cursor: pointer;
+  transition: transform .15s ease, background .15s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-primary { background: var(--amber); color: #1a1200; }
+.btn-primary:hover { background: #ffbb1f; }
+.btn-ghost { border-color: var(--line); color: var(--text); background: var(--panel); }
+.btn-ghost:hover { border-color: var(--muted); }
+.btn svg { width: 18px; height: 18px; }
+.btn-sm { padding: 10px 16px; font-size: 14px; }
+
+/* Hero */
+.hero { padding: 72px 0 88px; position: relative; overflow: hidden; }
+.hero::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(900px 420px at 80% 10%, rgba(76, 201, 240, .10), transparent 60%),
+    radial-gradient(700px 400px at 10% 90%, rgba(242, 169, 0, .07), transparent 60%);
+  pointer-events: none;
+}
+.hero-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: center; position: relative; }
+.hero h1 { font-size: clamp(52px, 9vw, 104px); text-transform: uppercase; margin-bottom: 22px; }
+.hero h1 em { font-style: normal; color: var(--amber); display: block; }
+.hero .byline { font: 500 15px/1.4 var(--mono); color: var(--muted); margin-bottom: 26px; }
+.hero .byline strong { color: var(--text); }
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+@media (max-width: 900px) {
+  .hero { padding: 48px 0 64px; }
+  .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+}
+
+/* Instrument panel */
+.panel {
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .04);
+  max-width: 440px; margin: 0 auto; width: 100%;
+}
+.adi { aspect-ratio: 1; width: 100%; border-radius: 50%; overflow: hidden; border: 6px solid #0a0d11; box-shadow: 0 0 0 1px var(--line); }
+.adi .horizon { transform-origin: 100px 100px; animation: bank 9s ease-in-out infinite; }
+@keyframes bank {
+  0%, 100% { transform: rotate(-6deg) translateY(4px); }
+  50% { transform: rotate(7deg) translateY(-6px); }
+}
+@media (prefers-reduced-motion: reduce) { .adi .horizon { animation: none; } html { scroll-behavior: auto; } }
+.readouts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 18px; }
+.readout {
+  background: #080b0f; border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; font-family: var(--mono);
+}
+.readout small { display: block; font-size: 11px; letter-spacing: .14em; color: var(--muted); }
+.readout span { font-size: 15px; font-weight: 600; color: var(--green); }
+.readout.amber span { color: var(--amber); }
+
+/* Sections */
+section { padding: 88px 0; border-top: 1px solid var(--line); }
+.section-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 40px; }
+.section-head .lede { margin: 14px 0 0; }
+
+/* Watch */
+.player {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  overflow: hidden;
+}
+.player .frame { aspect-ratio: 16 / 9; width: 100%; background: #000; }
+.player iframe { width: 100%; height: 100%; border: 0; }
+.player-empty {
+  aspect-ratio: 16 / 9; display: grid; place-items: center; text-align: center; padding: 24px;
+  background:
+    linear-gradient(180deg, rgba(47, 111, 168, .35), rgba(11, 15, 20, .9) 55%, rgba(122, 74, 28, .35)),
+    repeating-linear-gradient(0deg, transparent 0 38px, rgba(255, 255, 255, .03) 38px 39px);
+}
+.player-empty h3 { margin-bottom: 10px; }
+.player-empty p { color: var(--muted); max-width: 44ch; margin: 0 auto 20px; }
+.player-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-top: 1px solid var(--line); }
+.player-bar .mono { color: var(--muted); font-size: 13px; }
+
+/* Video grid */
+.vgrid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.vcard {
+  display: block; text-decoration: none; color: var(--text);
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  overflow: hidden; transition: transform .15s ease, border-color .15s ease;
+}
+.vcard:hover { transform: translateY(-2px); border-color: var(--muted); }
+.thumb {
+  position: relative; display: block; aspect-ratio: 16 / 9;
+  background: linear-gradient(180deg, var(--sky), var(--ground));
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.thumb b {
+  position: absolute; right: 10px; bottom: 10px;
+  font: 600 12px/1 var(--mono); color: #fff; background: rgba(0, 0, 0, .75);
+  padding: 5px 7px; border-radius: 5px;
+}
+.vmeta { display: block; padding: 14px 16px 16px; font: 500 15px/1.4 var(--body); }
+.vmeta small { display: block; font: 600 11px/1 var(--mono); letter-spacing: .14em; color: var(--cyan); margin-bottom: 8px; }
+
+/* Cards */
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 26px; position: relative;
+}
+.card .tag { font: 600 12px/1 var(--mono); letter-spacing: .14em; color: var(--cyan); margin-bottom: 16px; display: block; }
+.card h3 { margin-bottom: 12px; }
+.card p { color: var(--muted); margin: 0; }
+
+/* Checklist */
+.checklist { list-style: none; margin: 0; padding: 0; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.checklist li { display: grid; grid-template-columns: 1fr auto; gap: 16px; padding: 20px 24px; border-bottom: 1px dashed var(--line); align-items: baseline; }
+.checklist li:last-child { border-bottom: 0; }
+.checklist b { display: block; font: 600 16px/1.35 var(--body); margin-bottom: 4px; }
+.checklist p { color: var(--muted); margin: 0; font-size: 15px; }
+.checklist .state { font: 600 13px/1 var(--mono); letter-spacing: .12em; color: var(--green); white-space: nowrap; }
+.checklist-head { display: flex; justify-content: space-between; padding: 14px 24px; background: #080b0f; border-bottom: 1px solid var(--line); border-radius: var(--radius) var(--radius) 0 0; font: 600 12px/1 var(--mono); letter-spacing: .16em; color: var(--amber); }
+
+/* Split */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+@media (max-width: 860px) { .split { grid-template-columns: 1fr; gap: 32px; } }
+.rig { display: grid; gap: 10px; }
+.rig div { display: flex; justify-content: space-between; gap: 16px; padding: 14px 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; font-family: var(--mono); font-size: 14px; }
+.rig div span:first-child { color: var(--muted); letter-spacing: .1em; }
+.rig div span:last-child { text-align: right; }
+
+/* Contact */
+.contact { text-align: center; }
+.contact h2 { margin-bottom: 16px; }
+.contact .lede { margin: 0 auto 30px; }
+.contact .cta-row { justify-content: center; }
+
+footer { border-top: 1px solid var(--line); padding: 36px 0 48px; color: var(--muted); font-size: 14px; }
+footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px 32px; }
+footer p { margin: 0; max-width: 62ch; }
+footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Cockpit Reads home">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#0b0f14" stroke="#f2a900" stroke-width="4"/><path d="M14 33h12l6 5 6-5h12" fill="none" stroke="#f2a900" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>Cockpit <span>Reads</span></b>
+    </a>
+    <ul>
+      <li><a href="#watch">Watch</a></li>
+      <li><a href="#show">The Show</a></li>
+      <li><a href="#standards">Standards</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <a class="btn btn-primary btn-sm js-yt" href="#">Subscribe</a>
+  </div>
+</header>
+
+<main id="top">
+  <div class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow">A YouTube channel &middot; Microsoft Flight Simulator 2024</p>
+        <h1>Fly the route. <em>Read the story.</em></h1>
+        <p class="byline">Cockpit Reads by <strong>Dexter Dow</strong></p>
+        <p class="lede">Scenic flights in Microsoft Flight Simulator 2024 on PS5, with something worth hearing on the kneeboard: readings from Dexter's own books, and plain talk on history, foreign policy, and the news, with every source named.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary js-yt" href="#">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+            Watch on YouTube
+          </a>
+          <a class="btn btn-ghost" href="#watch">Latest flights</a>
+        </div>
+      </div>
+
+      <div class="panel" aria-hidden="true">
+        <svg class="adi" viewBox="0 0 200 200">
+          <g class="horizon">
+            <rect x="-100" y="-100" width="400" height="200" fill="#2f6fa8"/>
+            <rect x="-100" y="100" width="400" height="200" fill="#7a4a1c"/>
+            <line x1="-100" y1="100" x2="300" y2="100" stroke="#fff" stroke-width="2"/>
+            <g stroke="#fff" stroke-width="1.5" opacity=".85">
+              <line x1="80" y1="80" x2="120" y2="80"/><line x1="90" y1="90" x2="110" y2="90"/>
+              <line x1="90" y1="110" x2="110" y2="110"/><line x1="80" y1="120" x2="120" y2="120"/>
+              <line x1="85" y1="60" x2="115" y2="60"/><line x1="85" y1="140" x2="115" y2="140"/>
+            </g>
+          </g>
+          <path d="M40 100h34l10 10 16-10 16 10 10-10h34" fill="none" stroke="#f2a900" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="100" cy="100" r="3.5" fill="#f2a900"/>
+          <path d="M100 14l-6 10h12z" fill="#f2a900"/>
+        </svg>
+        <div class="readouts">
+          <div class="readout"><small>SIM</small><span>MSFS 2024</span></div>
+          <div class="readout"><small>PLATFORM</small><span>PS5</span></div>
+          <div class="readout amber"><small>ON THE KNEEBOARD</small><span>BOOKS &amp; NEWS</span></div>
+          <div class="readout amber"><small>ALSO</small><span>HISTORY &amp; POLICY</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section id="watch">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Latest flights</p>
+          <h2>Now boarding</h2>
+          <p class="lede">Newest uploads first, straight from the channel. Full flights and Shorts.</p>
+        </div>
+        <a class="btn btn-ghost js-yt" href="#">All videos on YouTube</a>
+      </div>
+      <div class="player" id="player"></div>
+
+      <p class="eyebrow" style="margin:48px 0 18px">Featured</p>
+      <div class="vgrid">
+        <a class="vcard" href="https://www.youtube.com/watch?v=xXOBTcdKMhE" target="_blank" rel="noopener">
+          <span class="thumb"><img src="https://i.ytimg.com/vi/xXOBTcdKMhE/hqdefault.jpg" alt="" loading="lazy"><b>42:17</b></span>
+          <span class="vmeta"><small>FULL FLIGHT &middot; DC to NYC</small>Generational Malpractice Discussion During DC-NYC Flight Simulation and Commentary</span>
+        </a>
+        <a class="vcard" href="https://www.youtube.com/shorts/s-MOpNqZ_u4" target="_blank" rel="noopener">
+          <span class="thumb"><img src="https://i.ytimg.com/vi/s-MOpNqZ_u4/hqdefault.jpg" alt="" loading="lazy"><b>0:17</b></span>
+          <span class="vmeta"><small>SHORT &middot; NUCLEAR HISTORY</small>25 Nations With The Bomb: JFK Saw This Coming</span>
+        </a>
+        <a class="vcard" href="https://www.youtube.com/shorts/prEtDQIBxOk" target="_blank" rel="noopener">
+          <span class="thumb"><img src="https://i.ytimg.com/vi/prEtDQIBxOk/hqdefault.jpg" alt="" loading="lazy"><b>0:16</b></span>
+          <span class="vmeta"><small>SHORT &middot; NEWS</small>Missile Strikes Hit Close to UK Troops | The Truth Exposed</span>
+        </a>
+        <a class="vcard" href="https://www.youtube.com/shorts/DCw2wBZsAxk" target="_blank" rel="noopener">
+          <span class="thumb"><img src="https://i.ytimg.com/vi/DCw2wBZsAxk/hqdefault.jpg" alt="" loading="lazy"><b>0:19</b></span>
+          <span class="vmeta"><small>SHORT &middot; FOREIGN POLICY</small>How the NPT Actually Worked When It Should Have Failed</span>
+        </a>
+        <a class="vcard" href="https://www.youtube.com/shorts/XluKkPpI9uY" target="_blank" rel="noopener">
+          <span class="thumb"><img src="https://i.ytimg.com/vi/XluKkPpI9uY/hqdefault.jpg" alt="" loading="lazy"><b>0:31</b></span>
+          <span class="vmeta"><small>SHORT &middot; NEWS</small>Iran's Nuclear Shell Game Exposed</span>
+        </a>
+        <a class="vcard" href="https://www.youtube.com/shorts/gVOiVf5fybY" target="_blank" rel="noopener">
+          <span class="thumb"><img src="https://i.ytimg.com/vi/gVOiVf5fybY/hqdefault.jpg" alt="" loading="lazy"><b>0:16</b></span>
+          <span class="vmeta"><small>SHORT &middot; NEWS</small>Iran Attacks Cyprus: EU Drawn into Conflict</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="show">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">The show</p>
+          <h2>What a flight looks like</h2>
+          <p class="lede">A real route, flown start to finish. The story gets told in chunks between the parts of the flight that need both hands.</p>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <span class="tag">01 &middot; TAXI &amp; TAKEOFF</span>
+          <h3>The hook</h3>
+          <p>What happened, why it matters today, and where we're flying. You know the whole plan before the wheels leave the ground.</p>
+        </article>
+        <article class="card">
+          <span class="tag">02 &middot; CLIMB &amp; CRUISE</span>
+          <h3>The read</h3>
+          <p>A chapter from one of Dexter's books, or a story broken down in plain words, with the outlet named and any quote read exactly as printed.</p>
+        </article>
+        <article class="card">
+          <span class="tag">03 &middot; DESCENT</span>
+          <h3>The context</h3>
+          <p>The history behind it, the aviation angle, and the questions the coverage left open.</p>
+        </article>
+        <article class="card">
+          <span class="tag">04 &middot; WHEELS DOWN</span>
+          <h3>The landing</h3>
+          <p>A straight wrap-up of where the story stands, then the approach and touchdown, on camera, good landing or bad.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="standards">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">Standards</p>
+        <h2>The pre-flight checklist for every story</h2>
+        <p class="lede" style="margin-top:14px">Dexter Dow also runs Granite State Report, an independent New Hampshire news outlet. The same rules for sourcing apply here: if a fact can't be checked, it doesn't go in the script.</p>
+        <div class="cta-row">
+          <a class="btn btn-ghost js-gsr" href="#">Visit Granite State Report</a>
+        </div>
+      </div>
+      <div>
+        <ul class="checklist">
+          <li class="checklist-head" aria-hidden="true"><span>BEFORE EVERY READ</span><span>STATUS</span></li>
+          <li><div><b>Own words, outlet named</b><p>Stories are retold and explained, never read out verbatim. The original outlet gets credit on screen or aloud.</p></div><span class="state">CHECK</span></li>
+          <li><div><b>Quotes short and exact</b><p>Direct quotes stay brief, word for word, and attributed to the person who said them.</p></div><span class="state">CHECK</span></li>
+          <li><div><b>Sources in the description</b><p>Every video lists the links it used, and every link is opened and confirmed before upload.</p></div><span class="state">CHECK</span></li>
+          <li><div><b>Unknowns called out</b><p>If something can't be confirmed yet, the video says so instead of guessing.</p></div><span class="state">CHECK</span></li>
+          <li><div><b>Own footage, cleared audio</b><p>Visuals are original sim capture. Music comes from licensed or royalty-free libraries.</p></div><span class="state">CHECK</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="rig">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow">The rig</p>
+        <h2>No studio. One sim, one capture card.</h2>
+        <p class="lede" style="margin-top:14px">Everything you see is captured live from a console flight and cut on a laptop. What you watch is what was flown.</p>
+      </div>
+      <div class="rig">
+        <div><span>SIMULATOR</span><span>Microsoft Flight Simulator 2024</span></div>
+        <div><span>CONSOLE</span><span>PlayStation 5</span></div>
+        <div><span>CAPTURE</span><span>NearStream CCD10</span></div>
+        <div><span>RECORDING</span><span>OBS on a MacBook</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="contact">
+    <div class="wrap">
+      <p class="eyebrow">Contact</p>
+      <h2>Got a story worth a flight?</h2>
+      <p class="lede">Send a tip, a route suggestion, or a business inquiry. Sponsorship and collaboration requests go to the same inbox.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary js-mail" href="#">Email Dexter</a>
+        <a class="btn btn-ghost js-yt" href="#">Subscribe on YouTube</a>
+      </div>
+      <p class="mono js-mail-text" style="color:var(--muted);font-size:14px;margin-top:22px"></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>&copy; <span id="year">2026</span> Cockpit Reads &middot; Dexter Dow. Flight simulation for entertainment and commentary, not flight instruction.</p>
+    <p>Microsoft Flight Simulator is a trademark of Microsoft. PlayStation is a trademark of Sony Interactive Entertainment. Cockpit Reads is independent and not affiliated with either.</p>
+  </div>
+</footer>
+
+<script>
+/* ---- SITE CONFIG: edit these values only ---- */
+var SITE = {
+  // Channel: "Cockpit Reads By Dexter Dow" (confirmed via YouTube search 2026-09-29).
+  youtubeUrl: "https://www.youtube.com/@cockpitreads",
+  // Channel ID drives the embedded uploads player below.
+  channelId: "UCBFgIZl6q_sewKY87g_JA9g",
+  gsrUrl: "https://granitestatereport.com",
+  email: "dexterdow33@gmail.com"
+};
+/* --------------------------------------------- */
+
+(function () {
+  document.querySelectorAll(".js-yt").forEach(function (a) {
+    a.href = SITE.youtubeUrl;
+    a.target = "_blank";
+    a.rel = "noopener";
+  });
+  document.querySelectorAll(".js-gsr").forEach(function (a) {
+    a.href = SITE.gsrUrl;
+    a.target = "_blank";
+    a.rel = "noopener";
+  });
+  document.querySelectorAll(".js-mail").forEach(function (a) {
+    a.href = "mailto:" + SITE.email + "?subject=" + encodeURIComponent("Cockpit Reads");
+  });
+  document.querySelectorAll(".js-mail-text").forEach(function (p) {
+    p.textContent = SITE.email;
+  });
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  var player = document.getElementById("player");
+  var id = (SITE.channelId || "").trim();
+  if (/^UC[\w-]{22}$/.test(id)) {
+    // A channel's uploads playlist is its channel ID with "UC" swapped for "UU".
+    var list = "UU" + id.slice(2);
+    player.innerHTML =
+      '<div class="frame"><iframe src="https://www.youtube-nocookie.com/embed/videoseries?list=' + list +
+      '" title="Latest Cockpit Reads videos" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' +
+      '<div class="player-bar"><span class="mono">UPLOADS &middot; NEWEST FIRST</span>' +
+      '<a class="btn btn-ghost btn-sm" href="' + SITE.youtubeUrl + '" target="_blank" rel="noopener">Open channel</a></div>';
+  } else {
+    player.innerHTML =
+      '<div class="player-empty"><div><p class="eyebrow">Cleared for departure</p>' +
+      '<h3>Every flight is on YouTube</h3>' +
+      '<p>Watch the newest Cockpit Reads flights and subscribe so the next one shows up in your feed.</p>' +
+      '<a class="btn btn-primary" href="' + SITE.youtubeUrl + '" target="_blank" rel="noopener">Go to the channel</a></div></div>';
+  }
+})();
+</script>
+</body>
+</html>
