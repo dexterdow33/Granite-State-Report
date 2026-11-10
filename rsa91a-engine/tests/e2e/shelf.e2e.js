@@ -25,7 +25,7 @@ async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const a = await makePdf(['Contract with Example Paving LLC', 'Owner SSN 123-45-6789']);
   const b = await makePdf(['Payroll note', 'Call (603) 555-0142']);
-  const exe = fs.existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : undefined;
+  const exe = require('./browser-path.js');
   const browser = await chromium.launch({ executablePath: exe });
   const context = await browser.newContext({ viewport: { width: 1500, height: 1000 }, acceptDownloads: true });
   const page = await context.newPage();

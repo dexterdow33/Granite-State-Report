@@ -5,7 +5,7 @@
   const { h, $, clear, toast, download } = NS.ui;
   const { store, letters, citations, deadlines, engine } = NS;
 
-  const L = { requestId: '', template: 'request', date: '', estimateDate: '', reason: '', producedDescription: '', fee: '', partial: false, entries: [], text: '' };
+  const L = { requestId: '', template: 'request', date: '', estimateDate: '', reason: '', costEstimate: '', producedDescription: '', fee: '', partial: false, entries: [], text: '' };
 
   function req() {
     return store.getRequest(L.requestId);
@@ -25,7 +25,7 @@
     const settings = Object.assign({}, store.state.settings, { userCitations: store.state.userCitations });
     try {
       L.text = tpl.fn(r, settings, {
-        date: L.date || deadlines.todayISO(), estimateDate: L.estimateDate, reason: L.reason,
+        date: L.date || deadlines.todayISO(), estimateDate: L.estimateDate, reason: L.reason, costEstimate: L.costEstimate,
         producedDescription: L.producedDescription, fee: L.fee, partial: L.partial, entries: L.entries,
       });
     } catch (e) {
@@ -105,6 +105,8 @@
       opts.push(field('Estimated decision date', h('input', { type: 'date', value: L.estimateDate, oninput: (e) => { L.estimateDate = e.target.value; } })));
       const t = h('textarea', { rows: 3, oninput: (e) => { L.reason = e.target.value; } }); t.value = L.reason;
       opts.push(field('Specific reason more time is needed', t));
+      const ce = h('textarea', { rows: 3, placeholder: 'Leave blank if no per-communication charge applies', oninput: (e) => { L.costEstimate = e.target.value; } }); ce.value = L.costEstimate;
+      opts.push(field('Itemized cost estimate (required by RSA 91-A:4, IV(b)(3) when a paragraph VIII charge applies: more than 250 electronic communications)', ce));
     }
     if (L.template === 'production' || L.template === 'denial') {
       if (L.template === 'production') {

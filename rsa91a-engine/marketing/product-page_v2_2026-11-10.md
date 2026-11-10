@@ -1,6 +1,6 @@
 # RSA91A-Engine product page — NinthStateSoftware.com
 
-Draft v1, 2026-09-30. Copy is ready to paste. Items in [brackets] need your decision or a fact you hold.
+Draft v2, 2026-11-10 (v1 was 2026-09-30). Copy is ready to paste. Items in [brackets] need your decision or a fact you hold.
 
 ---
 
@@ -68,7 +68,8 @@ Acknowledgment with a time estimate. Production cover letter. Denial with reason
 
 ## Built for New Hampshire
 
-- Cites RSA 91-A:4 and RSA 91-A:5 by paragraph, checked against New Hampshire Supreme Court opinions through 2025.
+- Cites RSA 91-A:4 by paragraph and subparagraph, checked against the statute text published by the legislature as of November 2026.
+- Cites RSA 91-A:5 exemptions as the New Hampshire Supreme Court has applied them, through 2025.
 - Add your own citations for other statutes that make records confidential.
 - Every citation carries a reminder to confirm current text at gc.nh.gov. Statutes change; this software tells you to check.
 
@@ -128,3 +129,5 @@ RSA91A-Engine is a product of Ninth State Software [VERIFY entity name], [city],
 - Facts in this copy I did not verify and you should before publishing: the attorney's-fee consequence is real (RSA 91-A:8, I, as quoted in *Brandano v. SAU 16*, N.H. Nov. 3, 2023), but the phrase "you pay the requester's attorney's fees" is a simplification. The statute requires the court to find the lawsuit was necessary and that the body knew or should have known it was violating the chapter. Consider softening to "and you can be liable for the requester's attorney's fees."
 - No pricing, refund or support commitments are asserted anywhere in the software. Whatever you publish here becomes the contract; match Section 9 of LICENSE.txt to it.
 - Do not claim certification, endorsement or compliance with any state guidance. None exists for this product.
+- RSA 91-A:4, IV(f) now says a public body that acted "in good faith to redact" is not liable for damages for disclosing exempt information, unless it acted in a wanton or reckless manner. It adds: "The use of automated software to produce redactions or other automated processes to speed production in concert with spot checks shall qualify as good faith." This is a strong selling point, and it is easy to overclaim. Do not say the software makes a body immune, guarantees good faith, or satisfies IV(f). The statute names no product, and no court has applied the subparagraph yet. A line that stays on the right side of that, for counsel to approve first: "RSA91A-Engine proposes redactions automatically, then requires a person to decide every mark and sign off on every file. That is the kind of review RSA 91-A:4, IV(f) describes. Whether your process meets it is your call, or your lawyer's."
+- The statute text behind the citation claims came from gc.nh.gov as of 2026-11-10 (source note through 2026, 206:5). Recheck before launch if the legislature has acted since.

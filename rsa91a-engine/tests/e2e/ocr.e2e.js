@@ -30,7 +30,7 @@ async function makeSourcePdf() {
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const src = await makeSourcePdf();
-  const exe = fs.existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : undefined;
+  const exe = require('./browser-path.js');
   const browser = await chromium.launch({ executablePath: exe });
   const page = await browser.newPage({ viewport: { width: 1400, height: 1000 }, acceptDownloads: true });
   const errors = [];

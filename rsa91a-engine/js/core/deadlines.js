@@ -1,10 +1,11 @@
 /*
  * RSA91A-Engine: business-day deadline math.
  *
- * RSA 91-A:4, IV: when a record is not immediately available, the public body
- * or agency must, "within 5 business days of request," make the record
- * available, deny the request in writing with reasons, or acknowledge receipt
- * in writing with a statement of the time reasonably necessary to decide.
+ * RSA 91-A:4, IV(b): when a record is not immediately available, the public
+ * body or agency must, "within 5 business days of a request," make the record
+ * available, deny the request (with the written statement IV(c) requires), or
+ * provide a written statement of the time reasonably necessary to decide, the
+ * reason for the delay, and an itemized estimate of any paragraph VIII charge.
  *
  * Counting convention (configurable): the day the request is received is day 0;
  * the next business day is day 1. Weekends and any dates on the holiday list

@@ -30,7 +30,7 @@ async function main() {
   const a = await makePdf(['Invoice from Example Paving LLC', 'Contact: Jane Q. Public, (603) 555-0142', 'Tax ID 123-45-6789'], 3);
   const b = await makePdf(['Payroll summary', 'Employee: Jane Q. Public', 'Direct deposit routing: 011000015'], 2);
 
-  const exe = fs.existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : undefined;
+  const exe = require('./browser-path.js');
   const browser = await chromium.launch({ executablePath: exe });
   const page = await browser.newPage({ viewport: { width: 1500, height: 1000 }, acceptDownloads: true });
   const errors = [];

@@ -8,7 +8,7 @@ Sold by Ninth State Software (NinthStateSoftware.com).
 
 **Request tracker**
 - Logs every request, whether you are sending it or answering it.
-- Counts the 5-business-day response window under RSA 91-A:4, IV. Weekends and a holiday list you edit are skipped.
+- Counts the 5-business-day response window under RSA 91-A:4, IV(b). Weekends and a holiday list you edit are skipped.
 - Dashboard of open requests, requests due within 2 business days, and requests past the window with no response.
 - CSV export, plus a JSON backup and restore.
 
@@ -62,16 +62,23 @@ Unzip and open `index.html` in Chrome, Edge or Firefox. That's it.
 
 ## Legal content and its sources
 
-The built-in citations cover RSA 91-A:4, I, I-a, IV(a), IV(b), IV (copy costs), V and VI; RSA 91-A:5, IV and XII; and RSA 91-A:8, I. Each was checked against the statutory text quoted in New Hampshire Supreme Court opinions, and each entry names its source and the statute edition that source cites:
+The built-in citations cover RSA 91-A:4, I, I-a, IV(a), IV(b), IV(c), IV(d), IV(f), V, VI, VIII and IX; RSA 91-A:5, IV and XII; and RSA 91-A:8, I. Each entry names its sources.
+
+**RSA 91-A:4 (all entries):** checked against the text published at gc.nh.gov as of November 10, 2026, whose source note runs through 2026 N.H. Laws 206:5 (eff. Aug. 31, 2026). The publisher supplied that text from gc.nh.gov; the build environment could not open the site. The wording of paragraph I, IV(b)(1)-(2), the first sentence of IV(d), the first two sentences of V, and VI matches the court quotations below. No court quotation was found for the IV(a) website clause, the IV(b)(3) itemized cost estimate, IV(c), IV(f), the last sentence of V, VIII or IX.
+
+**RSA 91-A:5 and 91-A:8:** checked only against the 2023 edition as quoted by the New Hampshire Supreme Court. Not yet re-checked against the current statute.
+
+Court sources:
 
 - *Union Leader Corp. v. N.H. Dep't of Safety*, 2024 N.H. 35: RSA 91-A:4, I (2023).
 - *Colquhoun v. City of Nashua*, No. 2021-0253 (Oct. 26, 2022): RSA 91-A:4, IV(a) (Supp. 2021).
 - *Brandano v. Superintendent of SAU 16*, No. 2022-0084 (order, Nov. 3, 2023): RSA 91-A:4, IV(b) and RSA 91-A:8, I (2023).
 - *Stone v. City of Claremont*, 2024 N.H. 11: RSA 91-A:4, VI (2023); cites IV(a)-(c).
 - *Michaud v. Town of Campton Police Dep't*, 2024 N.H. 19, and *Keene Publishing Corp. v. Fall Mountain Regional School District*, 2025 N.H. 35: RSA 91-A:4, I-a and RSA 91-A:5, IV and XII (2023).
-- *Taylor v. School Administrative Unit #55*, No. 2016-0702 (Sept. 21, 2017): RSA 91-A:4, IV and V (Supp. 2016). Paragraph IV was later divided into lettered subparagraphs. Two entries rest on this older text and are marked **not confirmed** in the app: the copy-cost sentences (paragraph IV, subparagraph unknown) and paragraph V.
+- *Martin v. City of Rochester* (N.H. June 9, 2020): the copy-cost sentence of RSA 91-A:4, IV (Supp. 2016), now IV(d).
+- *Taylor v. School Administrative Unit #55*, No. 2016-0702 (Sept. 21, 2017): RSA 91-A:4, IV and V (Supp. 2016).
 
-The primary statute site, gc.nh.gov, was not reachable from the build environment, so no entry was checked against the statute page itself. Statutes change. The app tells users to confirm current text at gc.nh.gov before relying on any citation. **RSA91A-Engine is a drafting and redaction tool, not legal advice.**
+Statutes change. The app tells users to confirm current text at gc.nh.gov before relying on any citation. **RSA91A-Engine is a drafting and redaction tool, not legal advice.**
 
 RSA 91-A:4, IV(b) says "within 5 business days" and does not define how to count. By default the day after receipt is business day 1; users can change this in Settings. The built-in holiday helper adds U.S. federal holidays only. New Hampshire state and municipal calendars differ, and the app says so.
 
