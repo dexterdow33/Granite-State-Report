@@ -42,6 +42,13 @@ test('terms are whole-word and case-insensitive', () => {
   assert.deepStrictEqual(got.sort(), ['JOHN  SMITH', 'John Smith', 'SMITH', 'Smith'].sort());
 });
 
+test('fuzzy terms tolerate OCR misreads but respect word boundaries', () => {
+  const text = 'Name: Jane QQ. Public. Address 42 Pleasant St. Mr Smithson and Jane Q Pub1ic attended.';
+  const got = det.scanTermsFuzzy(text, ['Jane Q. Public', 'Smith', 'Q.']).map((m) => text.slice(m.start, m.end));
+  assert.deepStrictEqual(got, ['Jane QQ. Public', 'Jane Q Pub1ic']);
+  assert.deepStrictEqual(det.scanTermsFuzzy('exact Jane Q. Public here', ['Jane Q. Public']).map((m) => m.label), ['Term (near match, 0 edits): Jane Q. Public']);
+});
+
 test('custom regex and zero-length safety', () => {
   const text = 'Case 216-2026-CV-00123 filed';
   assert.deepStrictEqual(det.scanRegex(text, '\\d{3}-\\d{4}-CV-\\d{5}').map((m) => text.slice(m.start, m.end)), ['216-2026-CV-00123']);

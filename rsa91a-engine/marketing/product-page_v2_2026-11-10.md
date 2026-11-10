@@ -1,6 +1,6 @@
 # RSA91A-Engine product page — NinthStateSoftware.com
 
-Draft v1, 2026-09-30. Copy is ready to paste. Items in [brackets] need your decision or a fact you hold.
+Draft v2, 2026-11-10 (v1 was 2026-09-30). Copy is ready to paste. Items in [brackets] need your decision or a fact you hold.
 
 ---
 
@@ -32,8 +32,20 @@ Every other tool draws a box over the text. RSA91A-Engine rebuilds the page. Eac
 
 Then it checks its own work. The output is reopened and tested for leftover text, every redacted string, annotations, attachments, scripts, bookmarks and metadata. A file that fails is not saved.
 
+### Reads scans
+Most town records are scans, and a scan is a picture. Built-in OCR turns the picture into text on your computer, so the scanner below works on scanned pages too. It even tolerates the character misreads OCR makes when matching names you list.
+
+### Handles the whole request at once
+A request is rarely one file. Open them all, scan them all with the same terms, review file by file, and export one production: one Bates sequence across every file, one redaction log, one zip. OCR runs in the background, so you keep working while scans are read.
+
 ### Finds the sensitive stuff first
 The scanner proposes redactions for Social Security and taxpayer ID numbers, bank and card numbers, phone numbers, emails, dates of birth, home addresses and any names or terms you list. It also reads filled-in form fields. Every hit is a proposal. A person accepts or rejects each one, draws boxes by hand, and withholds whole pages when needed.
+
+### Keeps the request together
+Every file you open for a request stays on that request's shelf, with its marks, until you take it off. Come back next week and pick up where you stopped.
+
+### Nothing goes out unsigned
+Each file needs a named sign-off before export, and only after every proposed mark has a decision. Change a mark later and the sign-off goes stale. The reviewer's name and time are in the log that goes to the requester and in your audit trail.
 
 ### Puts the exemption on the record
 Each redaction carries the exemption relied on and a stated reason. Export a redaction log the requester can read, with page and Bates numbers, that never repeats the withheld content. Keep an internal audit log with file fingerprints for your own records.
@@ -50,13 +62,14 @@ Acknowledgment with a time estimate. Production cover letter. Denial with reason
 | A town or city clerk | The 5-day tracker, letters on your letterhead, and redactions that hold up |
 | A school district or police records office | Personnel and investigative files redacted with the exemption printed on each box |
 | A newsroom or citizen requester | A log of every request you've sent, and a follow-up letter the day the window closes |
-| Counsel for a public body | A Vaughn-style redaction log and an audit trail with SHA-256 hashes |
+| Counsel for a public body | A Vaughn-style redaction log, named sign-offs, and an audit trail with SHA-256 hashes |
 
 ---
 
 ## Built for New Hampshire
 
-- Cites RSA 91-A:4 and RSA 91-A:5 by paragraph, checked against New Hampshire Supreme Court opinions through 2025.
+- Cites RSA 91-A:4 by paragraph and subparagraph, checked against the statute text published by the legislature as of November 2026.
+- Cites RSA 91-A:5 exemptions as the New Hampshire Supreme Court has applied them, through 2025.
 - Add your own citations for other statutes that make records confidential.
 - Every citation carries a reminder to confirm current text at gc.nh.gov. Statutes change; this software tells you to check.
 
@@ -74,7 +87,7 @@ RSA91A-Engine runs entirely in your web browser from files on your computer. It 
 No. Every page is an image. That is the cost of guaranteed removal. You keep the original for your own search.
 
 **Can it read scanned documents?**
-It can redact them. Automatic detection needs a text layer, which scans don't have, so the app tells you which pages to review by eye and lets you draw boxes.
+Yes. Built-in OCR turns a scanned page into searchable text on your computer, so the same automatic detection runs on scans. OCR is not perfect, so the app labels those marks and asks you to review scanned pages by eye too. English only.
 
 **Does it give legal advice?**
 No. It drafts documents and applies redactions you choose. Whether an exemption applies is your call, or your lawyer's.
@@ -116,3 +129,5 @@ RSA91A-Engine is a product of Ninth State Software [VERIFY entity name], [city],
 - Facts in this copy I did not verify and you should before publishing: the attorney's-fee consequence is real (RSA 91-A:8, I, as quoted in *Brandano v. SAU 16*, N.H. Nov. 3, 2023), but the phrase "you pay the requester's attorney's fees" is a simplification. The statute requires the court to find the lawsuit was necessary and that the body knew or should have known it was violating the chapter. Consider softening to "and you can be liable for the requester's attorney's fees."
 - No pricing, refund or support commitments are asserted anywhere in the software. Whatever you publish here becomes the contract; match Section 9 of LICENSE.txt to it.
 - Do not claim certification, endorsement or compliance with any state guidance. None exists for this product.
+- RSA 91-A:4, IV(f) now says a public body that acted "in good faith to redact" is not liable for damages for disclosing exempt information, unless it acted in a wanton or reckless manner. It adds: "The use of automated software to produce redactions or other automated processes to speed production in concert with spot checks shall qualify as good faith." This is a strong selling point, and it is easy to overclaim. Do not say the software makes a body immune, guarantees good faith, or satisfies IV(f). The statute names no product, and no court has applied the subparagraph yet. A line that stays on the right side of that, for counsel to approve first: "RSA91A-Engine proposes redactions automatically, then requires a person to decide every mark and sign off on every file. That is the kind of review RSA 91-A:4, IV(f) describes. Whether your process meets it is your call, or your lawyer's."
+- The statute text behind the citation claims came from gc.nh.gov as of 2026-11-10 (source note through 2026, 206:5). Recheck before launch if the legislature has acted since.

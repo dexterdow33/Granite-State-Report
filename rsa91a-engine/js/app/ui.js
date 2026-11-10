@@ -56,10 +56,11 @@
     });
   }
 
-  function pickFile(accept) {
+  /** Opens the file picker. With multiple=true resolves to an array of files (possibly empty). */
+  function pickFile(accept, multiple) {
     return new Promise((resolve) => {
-      const input = h('input', { type: 'file', accept });
-      input.addEventListener('change', () => resolve(input.files[0] || null));
+      const input = h('input', { type: 'file', accept, multiple: multiple ? true : null });
+      input.addEventListener('change', () => resolve(multiple ? Array.from(input.files) : (input.files[0] || null)));
       input.click();
     });
   }

@@ -216,6 +216,63 @@
     return out;
   }
 
+  /**
+   * Approximate whole-term matches, for OCR text. Allows up to k character
+   * edits (insert, delete, substitute) per term, k = floor(len / 7), min 1,
+   * and only for terms of 5+ characters. Sellers' algorithm with start
+   * tracking; case-insensitive; runs of whitespace count as one space.
+   */
+  function scanTermsFuzzy(text, terms, maxEditsFn) {
+    const out = [];
+    const hay = text.toLowerCase();
+    const kFor = maxEditsFn || ((len) => Math.max(1, Math.floor(len / 7)));
+    for (const raw of terms || []) {
+      const term = raw.trim().replace(/\s+/g, ' ').toLowerCase();
+      if (term.length < 5) continue;
+      const k = kFor(term.length);
+      const m = term.length;
+      const n = hay.length;
+      // cost[i] and start[i] for the current column j (position in hay).
+      let cost = new Array(m + 1);
+      let start = new Array(m + 1);
+      let pcost = new Array(m + 1);
+      let pstart = new Array(m + 1);
+      for (let i = 0; i <= m; i++) { pcost[i] = i; pstart[i] = 0; }
+      const hits = [];
+      for (let j = 1; j <= n; j++) {
+        const ch = hay[j - 1] === '\n' || hay[j - 1] === '\t' ? ' ' : hay[j - 1];
+        cost[0] = 0; start[0] = j;
+        for (let i = 1; i <= m; i++) {
+          const sub = pcost[i - 1] + (term[i - 1] === ch ? 0 : 1);
+          const del = pcost[i] + 1; // skip a hay char
+          const ins = cost[i - 1] + 1; // skip a term char
+          let c = sub; let s = pstart[i - 1];
+          if (del < c) { c = del; s = pstart[i]; }
+          if (ins < c) { c = ins; s = start[i - 1]; }
+          cost[i] = c; start[i] = s;
+        }
+        if (cost[m] <= k) hits.push({ start: start[m], end: j, cost: cost[m] });
+        [pcost, cost] = [cost, pcost];
+        [pstart, start] = [start, pstart];
+      }
+      // Keep the best (lowest-cost, then longest) hit among overlapping ones,
+      // and require word boundaries so "smithson" does not match "smith".
+      hits.sort((a, b) => a.start - b.start || a.cost - b.cost || (b.end - b.start) - (a.end - a.start));
+      let last = null;
+      for (const h of hits) {
+        const before = h.start > 0 ? hay[h.start - 1] : ' ';
+        const after = h.end < n ? hay[h.end] : ' ';
+        if (/[\p{L}\p{N}]/u.test(before) || /[\p{L}\p{N}]/u.test(after)) continue;
+        if (last && h.start < last.end) {
+          if (h.cost < last.cost) { out.pop(); } else continue;
+        }
+        last = h;
+        out.push({ start: h.start, end: h.end, type: 'term-fuzzy', label: 'Term (near match, ' + h.cost + ' edit' + (h.cost === 1 ? '' : 's') + '): ' + raw.trim() });
+      }
+    }
+    return out;
+  }
+
   /** User-supplied regular expression. Throws on invalid pattern. */
   function scanRegex(text, source, flags) {
     const re = new RegExp(source, (flags || 'gi').includes('g') ? flags || 'gi' : (flags || '') + 'g');
@@ -253,7 +310,7 @@
     return out;
   }
 
-  const api = { DETECTORS, scan, scanTerms, scanRegex, mergeOverlaps, luhnValid, abaRoutingValid };
+  const api = { DETECTORS, scan, scanTerms, scanTermsFuzzy, scanRegex, mergeOverlaps, luhnValid, abaRoutingValid };
 
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else { root.RSA91A = root.RSA91A || {}; root.RSA91A.detectors = api; }
